@@ -1,0 +1,247 @@
+# ============================================================================
+# .gitignore - SAD Sistema de Apoio à Decisão
+# ============================================================================
+
+# ===== PYTHON =====
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ===== DADOS SENSÍVEIS (NUNCA VERSIONAR!) =====
+# Arquivos de dados brutos do e-SUS
+data/raw/*.csv
+data/raw/*.xlsx
+data/raw/*.xls
+data/raw/*.json
+
+# Dados processados que possam conter informações sensíveis
+data/processed/*.csv
+data/processed/*.xlsx
+data/processed/*.parquet
+
+# Arquivos geoespaciais com dados reais
+data/geojson/*.geojson
+data/geojson/*.shp
+data/geojson/*.kml
+
+# Backups de banco de dados
+*.sql.gz
+*.dump
+*.backup
+
+# Modelos treinados (podem ser grandes)
+src/models/*.pkl
+src/models/*.joblib
+src/models/*.h5
+
+# ===== IDE / EDITORES =====
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iws
+*.iml
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# ===== SISTEMA OPERACIONAL =====
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+
+# ===== ESPECÍFICO DO PROJETO =====
+# Logs da aplicação
+*.log
+logs/
+
+# Arquivos temporários
+temp/
+tmp/
+*.tmp
+
+# Credenciais e chaves
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Arquivos de configuração local (exceto .env.example)
+.env
+config.local.py
+
+# Relatórios gerados
+reports/*.pdf
+reports/*.docx
+
+# Cache do Streamlit
+.streamlit/
+
+# ===== PERMITIR (Exceções) =====
+# Manter estrutura de pastas vazias
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/geojson/.gitkeep
+!src/models/.gitkeep
+
+# Manter dados de exemplo (caso existam)
+!data/raw/exemplo_*.csv
+!data/geojson/exemplo_*.geojson
