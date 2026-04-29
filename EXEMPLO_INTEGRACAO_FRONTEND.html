@@ -1,0 +1,377 @@
+<!-- Exemplo de HTML para página de Pacientes -->
+<!-- Integração com os novos endpoints do módulo -->
+
+<section id="pacientes-section" class="p-8 space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <span class="material-symbols-outlined text-primary text-4xl">group</span>
+            <div>
+                <h2 class="text-2xl font-bold">Gestão de Pacientes</h2>
+                <p class="text-slate-500 text-sm">Busca, histórico e monitoramento</p>
+            </div>
+        </div>
+        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90">
+            + Novo Paciente
+        </button>
+    </div>
+
+    <!-- Filtros de Busca -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+        <h3 class="font-bold mb-4">🔍 Filtros Avançados</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <!-- Território -->
+            <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">Território</label>
+                <select id="territorio-filter" class="w-full border rounded-lg p-2">
+                    <option value="">Todos</option>
+                    <option value="1">Centro</option>
+                    <option value="2">Zona Leste</option>
+                    <option value="3">Zona Oeste</option>
+                </select>
+            </div>
+
+            <!-- Unidade Saúde -->
+            <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">Unidade Saúde</label>
+                <select id="unidade-filter" class="w-full border rounded-lg p-2">
+                    <option value="">Todas</option>
+                    <option value="1">UBS Brasil</option>
+                    <option value="2">UBS Patagônia</option>
+                </select>
+            </div>
+
+            <!-- Idade Mínima -->
+            <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">Idade Mín</label>
+                <input type="number" id="idade-min-filter" min="60" max="120" value="60" class="w-full border rounded-lg p-2">
+            </div>
+
+            <!-- Idade Máxima -->
+            <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">Idade Máx</label>
+                <input type="number" id="idade-max-filter" min="60" max="120" value="100" class="w-full border rounded-lg p-2">
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label class="block text-sm font-bold text-slate-600 mb-2">Status</label>
+                <select id="status-filter" class="w-full border rounded-lg p-2">
+                    <option value="">Todos</option>
+                    <option value="true">Em Acompanhamento</option>
+                    <option value="false">Inativo</option>
+                </select>
+            </div>
+
+            <!-- Botão Buscar -->
+            <div class="flex items-end">
+                <button id="buscar-btn" class="w-full bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 font-bold">
+                    🔎 Buscar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Resultados -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800">
+            <h3 class="font-bold">📋 Resultados (<span id="total-resultados">0</span>)</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Paciente</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">Idade</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">IMC</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">Comorbidades</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">Risco</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Última Visita</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="pacientes-tbody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <!-- Carregado via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div id="paciente-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-slate-900 rounded-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+            
+            <!-- Header Modal -->
+            <div class="sticky top-0 bg-white dark:bg-slate-900 border-b p-6 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Detalhes do Paciente</h2>
+                <button onclick="closePacienteModal()" class="text-slate-500 hover:text-slate-700">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- Conteúdo Modal -->
+            <div id="modal-content" class="p-6 space-y-6">
+                <!-- Será preenchido via JavaScript -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// ============================================================================
+// Script para integração com API de Pacientes
+// ============================================================================
+
+async function buscarPacientes() {
+    const territorio = document.getElementById('territorio-filter').value;
+    const unidade = document.getElementById('unidade-filter').value;
+    const idadeMin = document.getElementById('idade-min-filter').value;
+    const idadeMax = document.getElementById('idade-max-filter').value;
+    const status = document.getElementById('status-filter').value;
+
+    let url = '/api/v1/pacientes/buscar?limite=50';
+    
+    if (territorio) url += `&territorio_ids=${territorio}`;
+    if (unidade) url += `&unidade_saude_ids=${unidade}`;
+    if (idadeMin) url += `&idade_minima=${idadeMin}`;
+    if (idadeMax) url += `&idade_maxima=${idadeMax}`;
+    if (status !== '') url += `&em_acompanhamento=${status}`;
+
+    try {
+        const response = await fetch(url);
+        const pacientes = await response.json();
+
+        renderizarPacientes(pacientes);
+    } catch (error) {
+        console.error('Erro ao buscar pacientes:', error);
+        alert('Erro ao buscar pacientes');
+    }
+}
+
+function renderizarPacientes(pacientes) {
+    const tbody = document.getElementById('pacientes-tbody');
+    const totalEl = document.getElementById('total-resultados');
+
+    tbody.innerHTML = '';
+    totalEl.textContent = pacientes.length;
+
+    pacientes.forEach(p => {
+        const diasSemVisita = p.dias_sem_visita || 0;
+        const statusVisita = diasSemVisita > 60 ? '⚠️ Atrasado' : '✅ Ok';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="px-6 py-4">
+                <p class="font-bold">${p.codigo_anonimo}</p>
+                <p class="text-xs text-slate-500">${p.territorio || 'N/A'}</p>
+            </td>
+            <td class="px-6 py-4 text-center">${p.idade}</td>
+            <td class="px-6 py-4 text-center font-bold">${p.imc_atual?.toFixed(1) || 'N/A'}</td>
+            <td class="px-6 py-4 text-center">
+                <span class="px-2 py-1 bg-blue-100 text-blue-600 text-xs rounded-full font-bold">
+                    ${p.total_comorbidades || 0}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-center">
+                <span class="px-2 py-1 rounded-full text-xs font-bold ${getRiscoColor(p.nivel_risco)}">
+                    ${p.nivel_risco || 'N/A'}
+                </span>
+            </td>
+            <td class="px-6 py-4">
+                <p class="text-sm">${p.data_ultima_visita || 'Nunca'}</p>
+                <p class="text-xs text-slate-500">${statusVisita}</p>
+            </td>
+            <td class="px-6 py-4 text-right">
+                <button onclick="abrirDetalhes('${p.id}')" class="text-primary hover:underline text-sm font-bold">
+                    Ver Detalhes
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function getRiscoColor(nivel) {
+    const colors = {
+        'Crítico': 'bg-red-100 text-red-600',
+        'Alto': 'bg-amber-100 text-amber-600',
+        'Moderado': 'bg-yellow-100 text-yellow-600',
+        'Baixo': 'bg-green-100 text-green-600'
+    };
+    return colors[nivel] || 'bg-slate-100 text-slate-600';
+}
+
+async function abrirDetalhes(pacienteId) {
+    const modal = document.getElementById('paciente-modal');
+    const modalContent = document.getElementById('modal-content');
+
+    try {
+        // Busca detalhes
+        const detResponse = await fetch(`/api/v1/pacientes/${pacienteId}`);
+        const detalhes = await detResponse.json();
+
+        // Busca acompanhamentos
+        const acompResponse = await fetch(`/api/v1/pacientes/${pacienteId}/acompanhamentos?limite=5`);
+        const acompanhamentos = await acompResponse.json();
+
+        // Busca comorbidades
+        const comResponse = await fetch(`/api/v1/pacientes/${pacienteId}/comorbidades`);
+        const comorbidades = await comResponse.json();
+
+        // Busca alertas
+        const alertResponse = await fetch(`/api/v1/pacientes/${pacienteId}/alertas?limite=5`);
+        const alertas = await alertResponse.json();
+
+        // Renderiza
+        modalContent.innerHTML = `
+            <!-- Dados Pessoais -->
+            <div>
+                <h3 class="font-bold text-lg mb-3">👤 Dados Pessoais</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-slate-600">Código</p>
+                        <p class="font-bold">${detalhes.codigo_anonimo}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600">Idade</p>
+                        <p class="font-bold">${detalhes.idade} anos</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600">Sexo</p>
+                        <p class="font-bold">${detalhes.sexo === 'F' ? 'Feminino' : 'Masculino'}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600">Território</p>
+                        <p class="font-bold">${detalhes.territorio}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600">Unidade Saúde</p>
+                        <p class="font-bold">${detalhes.unidade_saude}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-600">Último Acompanhamento</p>
+                        <p class="font-bold">${detalhes.data_ultima_visita || 'Nunca'}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medições Atuais -->
+            <div>
+                <h3 class="font-bold text-lg mb-3">📊 Medições Atuais</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-sm text-slate-600">IMC</p>
+                        <p class="text-2xl font-bold text-blue-600">${detalhes.imc_atual?.toFixed(1)}</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-sm text-slate-600">Peso</p>
+                        <p class="text-2xl font-bold text-blue-600">${detalhes.peso_kg} kg</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <p class="text-sm text-slate-600">Altura</p>
+                        <p class="text-2xl font-bold text-blue-600">${detalhes.altura_m} m</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <p class="text-sm text-slate-600">PA Sistólica</p>
+                        <p class="text-2xl font-bold text-red-600">${detalhes.pa_sistolica}</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <p class="text-sm text-slate-600">PA Diastólica</p>
+                        <p class="text-2xl font-bold text-red-600">${detalhes.pa_diastolica}</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <p class="text-sm text-slate-600">Glicemia</p>
+                        <p class="text-2xl font-bold text-yellow-600">${detalhes.glicemia}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risco -->
+            <div class="border-t pt-4">
+                <h3 class="font-bold text-lg mb-3">⚠️ Nível de Risco</h3>
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl font-bold ${getRiscoColor(detalhes.nivel_risco)}">${detalhes.nivel_risco}</div>
+                    <div>
+                        <p class="text-sm text-slate-600">Score de Risco</p>
+                        <p class="text-2xl font-bold">${detalhes.score_risco?.toFixed(1)}</p>
+                        <p class="text-xs text-slate-500">Calculado há ${detalhes.dias_desde_calculo_risco} dias</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comorbidades -->
+            <div class="border-t pt-4">
+                <h3 class="font-bold text-lg mb-3">❤️‍🩹 Condições Crônicas (${comorbidades.length})</h3>
+                ${comorbidades.map(c => `
+                    <div class="flex items-start gap-3 mb-2">
+                        <span class="text-green-500 text-lg">✓</span>
+                        <div>
+                            <p class="font-bold">${c.condicao}</p>
+                            <p class="text-xs text-slate-500">${c.descricao_adicional || 'Sem observações'}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Últimos Acompanhamentos -->
+            <div class="border-t pt-4">
+                <h3 class="font-bold text-lg mb-3">📅 Últimos Acompanhamentos</h3>
+                ${acompanhamentos.map(a => `
+                    <div class="border rounded-lg p-3 mb-2">
+                        <div class="flex justify-between">
+                            <p class="font-bold">${a.data_registro} - ${a.tipo_atendimento}</p>
+                            <p class="text-xs text-slate-500">IMC: ${a.imc?.toFixed(1)}</p>
+                        </div>
+                        <p class="text-sm text-slate-600 mt-1">${a.observacoes || 'Sem observações'}</p>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Alertas -->
+            ${alertas.length > 0 ? `
+                <div class="border-t pt-4">
+                    <h3 class="font-bold text-lg mb-3">🔔 Alertas Pendentes (${alertas.filter(a => !a.resolvido).length})</h3>
+                    ${alertas.filter(a => !a.resolvido).map(al => `
+                        <div class="border-l-4 border-red-500 bg-red-50 p-3 mb-2 rounded">
+                            <p class="font-bold text-red-700">${al.tipo_alerta}</p>
+                            <p class="text-sm text-red-600">${al.titulo}</p>
+                            <p class="text-xs text-red-500 mt-1">Prioridade: ${al.prioridade}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        `;
+
+        modal.classList.remove('hidden');
+    } catch (error) {
+        console.error('Erro ao buscar detalhes:', error);
+        alert('Erro ao carregar detalhes do paciente');
+    }
+}
+
+function closePacienteModal() {
+    document.getElementById('paciente-modal').classList.add('hidden');
+}
+
+// Carrega pacientes ao inicializar
+document.getElementById('buscar-btn').addEventListener('click', buscarPacientes);
+setTimeout(buscarPacientes, 500); // Carrega lista inicial
+
+// Fecha modal ao clicar fora
+document.getElementById('paciente-modal').addEventListener('click', function(e) {
+    if (e.target === this) closePacienteModal();
+});
+</script>
+
+<style>
+/* Estilos adicionais para a seção -->
+#pacientes-section table tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark #pacientes-section table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+</style>
