@@ -54,7 +54,7 @@ def check_env_file():
     """Verifica se o arquivo .env existe"""
     print("\nArquivos de Configuração:")
 
-    env_path = Path(__file__).resolve().parent.parent / '.env'
+    env_path = Path(__file__).resolve().parent / '.env'
 
     if env_path.exists():
         print(f"  [OK] Arquivo .env encontrado")
@@ -70,7 +70,7 @@ def check_database_connection():
     print("\nBanco de Dados:")
 
     try:
-        sys.path.append(str(Path(__file__).resolve().parent.parent))
+        sys.path.append(str(Path(__file__).resolve().parent))
         from src.database.connection import DatabaseConnection
 
         db = DatabaseConnection()
@@ -100,7 +100,7 @@ def check_directories():
     """Verifica estrutura de diretórios"""
     print("\nEstrutura de Diretórios:")
 
-    base_dir = Path(__file__).resolve().parent.parent
+    base_dir = Path(__file__).resolve().parent
 
     required_dirs = [
         'data/raw',
