@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações | SAD Obesidade{% endblock %}
+{% block page_icon %}settings{% endblock %}
+{% block page_title %}Configurações do SAD{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-12 gap-6">
+    <!-- Section 1: Thresholds -->
+    <section class="col-span-12 lg:col-span-7 bg-white p-8 shadow-sm rounded-xl border border-slate-200 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h3 class="text-lg font-black tracking-tight text-slate-900 uppercase">Limiares de Decisão (SAD)</h3>
+                <p class="text-xs text-slate-500">Defina os parâmetros de estratificação automática de risco.</p>
+            </div>
+            <span class="material-symbols-outlined text-primary/20 text-4xl">tune</span>
+        </div>
+        <div class="space-y-8">
+            <div>
+                <div class="flex justify-between items-end mb-2">
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-red-500">Risco Crítico (ML Score)</label>
+                    <span class="text-xl font-black text-slate-900" id="threshold-critico-val">8.5</span>
+                </div>
+                <input id="threshold-critico" type="range" min="0" max="10" step="0.1" value="8.5"
+                    class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-red-500"
+                    oninput="document.getElementById('threshold-critico-val').textContent=this.value"/>
+                <p class="text-[10px] mt-2 text-slate-500 italic leading-tight">Intervenção imediata e alerta automatizado para a coordenação da APS.</p>
+            </div>
+            <div>
+                <div class="flex justify-between items-end mb-2">
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-amber-600">Risco Médio (ML Score)</label>
+                    <span class="text-xl font-black text-slate-900" id="threshold-medio-val">6.2</span>
+                </div>
+                <input id="threshold-medio" type="range" min="0" max="10" step="0.1" value="6.2"
+                    class="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    oninput="document.getElementById('threshold-medio-val').textContent=this.value"/>
+                <p class="text-[10px] mt-2 text-slate-500 italic leading-tight">Priorização nas visitas domiciliares semanais do ACS responsável.</p>
+            </div>
+            <div class="pt-4 flex justify-end">
+                <button class="bg-primary text-white text-xs font-bold py-3 px-6 rounded shadow-sm hover:opacity-90 uppercase tracking-widest">Atualizar Algoritmo</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Infrastructure Status -->
+    <section class="col-span-12 lg:col-span-5 bg-white p-8 shadow-sm rounded-xl border border-slate-200">
+        <h3 class="text-lg font-black tracking-tight text-slate-900 uppercase mb-6">Status da Infraestrutura</h3>
+        <div class="space-y-6">
+            <div class="p-4 bg-slate-50 border-l-4 border-emerald-500 rounded">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">database</span>
+                        <div>
+                            <h4 class="text-xs font-bold uppercase tracking-tight">PostgreSQL + PostGIS</h4>
+                            <p class="text-[10px] text-slate-500">Geospatial Data Warehouse</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase rounded-full">Connected</span>
+                </div>
+                <div class="flex gap-8">
+                    <div><p class="text-[9px] uppercase font-bold text-slate-400">Latência</p><p class="text-sm font-black text-slate-900">12ms</p></div>
+                    <div><p class="text-[9px] uppercase font-bold text-slate-400">Uptime</p><p class="text-sm font-black text-slate-900">99.98%</p></div>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-l-4 border-emerald-500 rounded">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">memory</span>
+                        <div>
+                            <h4 class="text-xs font-bold uppercase tracking-tight">ML Inference Service</h4>
+                            <p class="text-[10px] text-slate-500">Predictive Risk Engine</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase rounded-full">Connected</span>
+                </div>
+                <div class="flex gap-8">
+                    <div><p class="text-[9px] uppercase font-bold text-slate-400">Processamento</p><p class="text-sm font-black text-slate-900">45ms/req</p></div>
+                    <div><p class="text-[9px] uppercase font-bold text-slate-400">Versão</p><p class="text-sm font-black text-slate-900">v1.0.0</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: ACS Permissions -->
+    <section class="col-span-12 lg:col-span-8 bg-white p-8 shadow-sm rounded-xl border border-slate-200">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-black tracking-tight text-slate-900 uppercase">Permissões de Agentes (ACS)</h3>
+            <input type="text" placeholder="Filtrar agente..." class="text-xs border-slate-200 focus:ring-primary focus:border-primary rounded py-1.5 px-3 w-48"/>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-slate-100">
+                        <th class="py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Agente</th>
+                        <th class="py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Território</th>
+                        <th class="py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nível de Acesso</th>
+                        <th class="py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <tr>
+                        <td class="py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-500">AF</div>
+                                <span class="text-xs font-bold text-slate-900">Ana Ferreira</span>
+                            </div>
+                        </td>
+                        <td class="py-4 text-[11px] font-medium text-slate-600 uppercase">Zona Sul - Setor 04</td>
+                        <td class="py-4"><span class="px-2 py-0.5 bg-primary-container text-on-primary-container text-[9px] font-bold uppercase rounded">Editor</span></td>
+                        <td class="py-4 text-right"><button class="text-primary hover:underline text-[10px] font-bold uppercase">Gerenciar</button></td>
+                    </tr>
+                    <tr>
+                        <td class="py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-500">JS</div>
+                                <span class="text-xs font-bold text-slate-900">João Santos</span>
+                            </div>
+                        </td>
+                        <td class="py-4 text-[11px] font-medium text-slate-600 uppercase">Centro - Setor 01</td>
+                        <td class="py-4"><span class="px-2 py-0.5 bg-slate-100 text-slate-700 text-[9px] font-bold uppercase rounded">Visualizador</span></td>
+                        <td class="py-4 text-right"><button class="text-primary hover:underline text-[10px] font-bold uppercase">Gerenciar</button></td>
+                    </tr>
+                    <tr>
+                        <td class="py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 rounded bg-slate-100 flex items-center justify-center font-bold text-xs text-slate-500">MC</div>
+                                <span class="text-xs font-bold text-slate-900">Maria Clara</span>
+                            </div>
+                        </td>
+                        <td class="py-4 text-[11px] font-medium text-slate-600 uppercase">Zona Norte - Setor 12</td>
+                        <td class="py-4"><span class="px-2 py-0.5 bg-primary-container text-on-primary-container text-[9px] font-bold uppercase rounded">Editor</span></td>
+                        <td class="py-4 text-right"><button class="text-primary hover:underline text-[10px] font-bold uppercase">Gerenciar</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Section 4: Notifications + Support -->
+    <section class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+        <div class="bg-white p-8 shadow-sm rounded-xl border border-slate-200 flex-1">
+            <h3 class="text-lg font-black tracking-tight text-slate-900 uppercase mb-6">Notificações</h3>
+            <div class="space-y-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-tight">Alertas de Sistema</h4>
+                        <p class="text-[10px] text-slate-500">Eventos de infraestrutura e sincronização.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer"/>
+                        <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-tight text-red-500">SMS Risco Crítico</h4>
+                        <p class="text-[10px] text-slate-500">Alertas em tempo real para casos extremos.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" checked class="sr-only peer"/>
+                        <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-500"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-tight">Relatórios Semanais</h4>
+                        <p class="text-[10px] text-slate-500">Consolidado de KPIs por e-mail.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer"/>
+                        <div class="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-primary p-8 shadow-sm rounded-xl">
+            <div class="flex items-center justify-between mb-4">
+                <span class="material-symbols-outlined text-white/50">support_agent</span>
+                <span class="text-[10px] font-black text-white/80 uppercase tracking-widest">Suporte SAD</span>
+            </div>
+            <h4 class="text-white font-bold text-sm leading-snug">Precisa de ajuda com o refinamento do modelo ML?</h4>
+            <p class="text-white/70 text-[11px] mt-2 mb-4">Consulte a equipe de ciência de dados para calibração personalizada de territórios.</p>
+            <button class="w-full bg-white text-primary text-[10px] font-black py-2.5 uppercase tracking-widest rounded shadow-md hover:bg-slate-50">Falar com Consultor</button>
+        </div>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios | SAD Obesidade{% endblock %}
+{% block page_icon %}description{% endblock %}
+{% block page_title %}Relatórios e Indicadores{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Módulo de Análise</p>
+        <h2 class="text-3xl font-black text-slate-900 tracking-tight">Relatórios e Indicadores</h2>
+    </div>
+    <div class="flex items-center gap-3 bg-white p-2 border border-slate-200 shadow-sm rounded-xl">
+        <span class="material-symbols-outlined text-slate-400 px-2">calendar_today</span>
+        <div class="flex flex-col">
+            <span class="text-[10px] uppercase font-bold text-slate-500">Período</span>
+            <select class="border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900">
+                <option>Últimos 6 Meses</option>
+                <option>Último Trimestre</option>
+                <option>Ano Atual</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Bento Grid -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Comparative Chart -->
+    <div class="col-span-12 lg:col-span-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <h3 class="text-lg font-black text-slate-900 leading-tight">Prevalência por Unidade (UBS)</h3>
+                <p class="text-xs text-slate-500 font-medium">Comparativo de Obesidade e Risco Crítico</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 bg-primary rounded-full"></span><span class="text-[10px] font-bold uppercase text-slate-500">Obesidade</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="text-[10px] font-bold uppercase text-slate-500">Crítico</span></div>
+            </div>
+        </div>
+        <div class="h-64 flex items-end gap-12 px-4">
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-full flex justify-center gap-1 items-end h-48">
+                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:75%"></div>
+                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:40%"></div>
+                </div>
+                <span class="mt-4 text-[11px] font-black text-slate-700">UBS Brasil</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-full flex justify-center gap-1 items-end h-48">
+                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:60%"></div>
+                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:55%"></div>
+                </div>
+                <span class="mt-4 text-[11px] font-black text-slate-700">Patagônia</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-full flex justify-center gap-1 items-end h-48">
+                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:85%"></div>
+                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:30%"></div>
+                </div>
+                <span class="mt-4 text-[11px] font-black text-slate-700">Vila Serrana</span>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+                <div class="w-full flex justify-center gap-1 items-end h-48">
+                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:45%"></div>
+                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:20%"></div>
+                </div>
+                <span class="mt-4 text-[11px] font-black text-slate-700">Centro</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="col-span-12 lg:col-span-4">
+        <div class="bg-primary text-white p-6 rounded-xl shadow-lg relative overflow-hidden h-full">
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-white/80">auto_awesome</span>
+                    <h3 class="text-sm font-black uppercase tracking-widest">Insights do Sistema</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
+                        <p class="text-sm leading-relaxed">Aumento de <span class="font-bold text-red-200">12% no risco crítico</span> na Zona Oeste este mês.</p>
+                    </div>
+                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
+                        <p class="text-sm leading-relaxed">Aumento de visitas domiciliares <span class="font-bold text-emerald-200">reduziu o risco em 15%</span> na UBS Patagônia.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+        </div>
+    </div>
+
+    <!-- Impact Chart -->
+    <div class="col-span-12 lg:col-span-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h3 class="text-lg font-black text-slate-900 leading-tight">Impacto das Visitas Domiciliares</h3>
+                <p class="text-xs text-slate-500 font-medium">Correlação: Frequência de visitas vs. Score de Risco</p>
+            </div>
+            <span class="text-[10px] font-bold text-slate-500 uppercase bg-slate-50 p-2 rounded-lg">Média visitas: <span class="text-primary">+22%</span></span>
+        </div>
+        <div class="relative h-64 w-full px-2">
+            <svg class="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
+                <line x1="0" y1="50" x2="800" y2="50" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="0" y1="100" x2="800" y2="100" stroke="#f1f5f9" stroke-width="1"/>
+                <line x1="0" y1="150" x2="800" y2="150" stroke="#f1f5f9" stroke-width="1"/>
+                <path d="M0,40 Q160,60 320,100 T640,140 T800,160" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="8 4"/>
+                <path d="M0,180 Q160,160 320,120 T640,80 T800,40" fill="none" stroke="#2c684a" stroke-width="4"/>
+            </svg>
+            <div class="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase">
+                <span>Mês 1</span><span>Mês 2</span><span>Mês 3</span><span>Mês 4</span><span>Mês 5</span><span>Mês 6</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export -->
+    <div class="col-span-12 lg:col-span-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-l-4 border-l-primary flex flex-col">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">file_download</span>
+            </div>
+            <div>
+                <h3 class="text-sm font-black text-slate-900 uppercase">Exportação de Dados</h3>
+                <p class="text-[10px] text-slate-500">PDF / CSV prontos para apresentação</p>
+            </div>
+        </div>
+        <div class="space-y-3 mt-auto">
+            <button class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg group">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
+                    <span class="text-sm font-bold text-slate-700">Exportar PDF</span>
+                </div>
+                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary">chevron_right</span>
+            </button>
+            <button class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg group">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">table_view</span>
+                    <span class="text-sm font-bold text-slate-700">Exportar CSV</span>
+                </div>
+                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary">chevron_right</span>
+            </button>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-100">
+            <p class="text-[10px] font-medium text-slate-400 italic">Última exportação: 12/06/2025 — Dr. Ricardo Santos.</p>
+        </div>
+    </div>
+
+    <!-- Heat Map Focus -->
+    <div class="col-span-12 bg-white p-6 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-black text-slate-900">Mapa de Calor: Concentração de Risco</h3>
+            <div class="flex gap-2">
+                <button class="px-3 py-1 bg-slate-50 text-[10px] font-bold rounded hover:bg-slate-100">ZONA OESTE</button>
+                <button class="px-3 py-1 bg-slate-50 text-[10px] font-bold rounded hover:bg-slate-100">ZONA SUL</button>
+                <button class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded">TODAS</button>
+            </div>
+        </div>
+        <div class="w-full h-72 bg-slate-100 rounded-lg relative overflow-hidden">
+            <div class="absolute inset-0 bg-primary/5"></div>
+            <div class="absolute top-1/4 left-1/3 w-24 h-24 bg-red-500/30 rounded-full blur-2xl border-2 border-red-500/40"></div>
+            <div class="absolute bottom-1/3 right-1/4 w-32 h-32 bg-primary/20 rounded-full blur-2xl border-2 border-primary/30"></div>
+            <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 rounded shadow-lg">
+                <p class="text-[10px] font-black uppercase mb-2">Legenda</p>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full"></span><span class="text-[9px] font-bold">Crítico</span></div>
+                    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-amber-500 rounded-full"></span><span class="text-[9px] font-bold">Alerta</span></div>
+                    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-primary rounded-full"></span><span class="text-[9px] font-bold">Estável</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

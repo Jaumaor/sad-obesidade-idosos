@@ -36,16 +36,23 @@ def create_app(backend_url: str = "http://127.0.0.1:8000"):
     @app.get("/dashboard")
     def index():
         """Serve a página principal do dashboard."""
-        return render_template("index.html")
+        return render_template("index.html", active_page="dashboard")
 
     @app.get("/pacientes")
     def pacientes_page():
-        # Dica: No futuro, você pode criar um 'pacientes.html'
-        return render_template("index.html")
+        return render_template("pacientes.html", active_page="pacientes")
 
     @app.get("/mapa")
     def mapa_page():
-        return render_template("index.html")
+        return render_template("mapa.html", active_page="mapa")
+
+    @app.get("/relatorios")
+    def relatorios_page():
+        return render_template("relatorios.html", active_page="relatorios")
+
+    @app.get("/configuracoes")
+    def configuracoes_page():
+        return render_template("configuracoes.html", active_page="configuracoes")
 
     # ===== ROTAS DE API (Proxy para o backend) =====
     # Estas rotas chamam o seu backend Python que processa o ML e o PostGIS

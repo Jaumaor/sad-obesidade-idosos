@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa de Risco | SAD Obesidade{% endblock %}
+{% block page_icon %}map{% endblock %}
+{% block page_title %}Mapa de Risco Territorial{% endblock %}
+{% block content_padding %}p-0{% endblock %}
+
+{% block extra_styles %}
+.heatmap-overlay {
+    background:
+      radial-gradient(circle at 40% 50%, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 40%, transparent 70%),
+      radial-gradient(circle at 60% 45%, rgba(245, 158, 11, 0.3) 0%, transparent 50%);
+}
+.map-grid {
+    background-image:
+      linear-gradient(rgba(44, 104, 74, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(44, 104, 74, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="flex h-[calc(100vh-5rem)]">
+    <!-- Filter Panel -->
+    <aside class="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 overflow-y-auto">
+        <div class="space-y-8">
+            <div>
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Configurações do Mapa</h3>
+                <label class="block text-xs font-bold text-slate-700 mb-2">Unidade Básica de Saúde</label>
+                <div class="relative">
+                    <select class="w-full bg-slate-50 border-none text-sm font-medium rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-primary appearance-none">
+                        <option>Todas as Unidades</option>
+                        <option>UBS Brasil</option>
+                        <option>UBS Patagônia</option>
+                        <option>UBS Vila Serrana</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="text-xs font-bold text-slate-700 uppercase">Raio (Buffer)</label>
+                    <span class="text-xs font-black text-primary bg-primary-container px-2 py-0.5 rounded">2.5 km</span>
+                </div>
+                <input type="range" min="0" max="10" step="0.5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"/>
+                <div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2">
+                    <span>0km</span><span>5km</span><span>10km</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-slate-700 uppercase block mb-4">Filtragem de Risco</label>
+                <div class="space-y-3">
+                    <label class="flex items-center group cursor-pointer">
+                        <input type="checkbox" checked class="w-4 h-4 rounded-sm border-slate-300 text-red-500 focus:ring-red-500"/>
+                        <span class="ml-3 text-sm font-medium text-slate-600">Risco Crítico</span>
+                        <span class="ml-auto w-2 h-2 rounded-full bg-red-500"></span>
+                    </label>
+                    <label class="flex items-center group cursor-pointer">
+                        <input type="checkbox" checked class="w-4 h-4 rounded-sm border-slate-300 text-amber-500 focus:ring-amber-500"/>
+                        <span class="ml-3 text-sm font-medium text-slate-600">Risco Médio</span>
+                        <span class="ml-auto w-2 h-2 rounded-full bg-amber-500"></span>
+                    </label>
+                    <label class="flex items-center group cursor-pointer">
+                        <input type="checkbox" class="w-4 h-4 rounded-sm border-slate-300 text-primary focus:ring-primary"/>
+                        <span class="ml-3 text-sm font-medium text-slate-600">Baixo Risco</span>
+                        <span class="ml-auto w-2 h-2 rounded-full bg-primary"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <p class="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-3">Densidade Populacional</p>
+                <div class="h-2 w-full bg-gradient-to-r from-emerald-100 via-amber-200 to-red-500 rounded-full mb-2"></div>
+                <div class="flex justify-between text-[10px] font-bold text-slate-400">
+                    <span>BAIXA</span><span>ALTA</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
+                <p class="text-[11px] text-slate-500 italic leading-relaxed">
+                    O mapa apresenta o gradiente de densidade para idosos (60+) com obesidade grau II e III, agregados por microárea para preservação de privacidade (LGPD).
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Map Area -->
+    <div class="flex-1 relative bg-slate-200 map-grid overflow-hidden">
+        <div class="absolute inset-0 heatmap-overlay"></div>
+
+        <!-- Landmarks -->
+        <div class="absolute top-[40%] left-[35%] text-center">
+            <span class="material-symbols-outlined text-primary text-3xl opacity-60">health_and_safety</span>
+            <span class="block text-[10px] font-bold text-slate-700 -mt-1">UBS Brasil</span>
+        </div>
+        <div class="absolute top-[55%] left-[58%] text-center">
+            <span class="material-symbols-outlined text-primary text-3xl opacity-60">health_and_safety</span>
+            <span class="block text-[10px] font-bold text-slate-700 -mt-1">UBS Patagônia</span>
+        </div>
+
+        <!-- Streets simulation -->
+        <svg class="absolute inset-0 w-full h-full opacity-20 pointer-events-none" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+            <path d="M0,200 L1000,200 M0,400 L1000,400 M0,600 L1000,600 M0,800 L1000,800" stroke="#94a3b8" stroke-width="2"/>
+            <path d="M200,0 L200,1000 M400,0 L400,1000 M600,0 L600,1000 M800,0 L800,1000" stroke="#94a3b8" stroke-width="2"/>
+        </svg>
+
+        <!-- Legend -->
+        <div class="absolute top-6 right-6 bg-white/90 backdrop-blur shadow-xl rounded-lg p-3 border border-slate-200 pointer-events-none">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                <span class="text-[11px] font-bold text-slate-800">Alta Densidade (Crítico)</span>
+            </div>
+            <div class="flex items-center gap-2 mb-2">
+                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                <span class="text-[11px] font-bold text-slate-800">Médio Risco Territorial</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-primary/40"></div>
+                <span class="text-[11px] font-bold text-slate-800">Área de Cobertura UBS</span>
+            </div>
+        </div>
+
+        <!-- Stats Panel -->
+        <div class="absolute bottom-6 right-6 w-96 bg-white shadow-2xl rounded-xl overflow-hidden border-l-4 border-primary">
+            <div class="p-4 bg-primary/5 border-b border-slate-100 flex justify-between items-center">
+                <h4 class="text-sm font-black text-primary tracking-tight">Estatísticas da Zona Selecionada</h4>
+                <span class="text-[10px] font-bold text-primary bg-white px-2 py-0.5 rounded border border-primary/20">SETOR 04-A</span>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-4">
+                <div class="col-span-2 flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total de Pacientes</p>
+                        <p class="text-2xl font-black tracking-tighter">1.248</p>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400 text-3xl">groups</span>
+                </div>
+                <div class="bg-red-50 p-3 rounded-lg border border-red-100">
+                    <p class="text-[9px] font-bold text-red-700 uppercase">Obesidade Sarcopênica</p>
+                    <p class="text-xl font-black text-red-600">342</p>
+                    <div class="mt-1 h-1 w-full bg-red-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-red-600 w-[72%]"></div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase">Média IMC Setor</p>
+                    <p class="text-xl font-black text-slate-800">31.4 <span class="text-xs font-medium text-slate-400">kg/m²</span></p>
+                    <div class="flex items-center gap-1 mt-1 text-[10px] font-bold text-red-500">
+                        <span class="material-symbols-outlined text-[12px]">trending_up</span>+2.1%
+                    </div>
+                </div>
+            </div>
+            <div class="px-5 pb-5">
+                <a href="/pacientes" class="block text-center w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded hover:bg-black transition-colors">
+                    Ver Listagem Completa
+                </a>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="absolute left-6 bottom-6 flex flex-col gap-2">
+            <button class="w-10 h-10 bg-white shadow-lg rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary"><span class="material-symbols-outlined">add</span></button>
+            <button class="w-10 h-10 bg-white shadow-lg rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary"><span class="material-symbols-outlined">remove</span></button>
+            <button class="w-10 h-10 bg-white shadow-lg rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary mt-2"><span class="material-symbols-outlined">my_location</span></button>
+        </div>
+    </div>
+</div>
+{% endblock %}

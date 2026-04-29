@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Pacientes | SAD Obesidade{% endblock %}
+{% block page_icon %}group{% endblock %}
+{% block page_title %}Gestão e Prontuários de Pacientes{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div>
+        <h1 class="text-3xl font-black text-slate-900 tracking-tight mb-1">Monitoramento de Pacientes</h1>
+        <p class="text-slate-500 font-medium text-sm">Idosos com obesidade grau II e III sob acompanhamento da APS.</p>
+    </div>
+    <div class="flex flex-wrap items-end gap-3">
+        <div class="flex flex-col">
+            <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Faixa Etária</label>
+            <select class="bg-white border border-slate-200 rounded px-3 py-2 text-sm font-medium focus:ring-primary focus:border-primary">
+                <option>Todos os idosos (60+)</option>
+                <option>60-69 anos</option>
+                <option>70-79 anos</option>
+                <option>80+ anos</option>
+            </select>
+        </div>
+        <div class="flex flex-col">
+            <label class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">IMC</label>
+            <select class="bg-white border border-slate-200 rounded px-3 py-2 text-sm font-medium focus:ring-primary focus:border-primary">
+                <option>Todos</option>
+                <option selected>Obesidade II (≥35)</option>
+                <option>Obesidade III (≥40)</option>
+            </select>
+        </div>
+        <button class="bg-primary text-white h-[38px] px-6 rounded font-bold text-sm hover:opacity-90 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">filter_list</span>
+            Aplicar Filtros
+        </button>
+    </div>
+</div>
+
+<!-- Bento Layout -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Patient Table -->
+    <div class="col-span-12 lg:col-span-8 space-y-6">
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-100">
+                            <th class="px-6 py-4 text-[10px] uppercase tracking-wider font-black text-slate-500">Paciente</th>
+                            <th class="px-6 py-4 text-[10px] uppercase tracking-wider font-black text-slate-500">Idade</th>
+                            <th class="px-6 py-4 text-[10px] uppercase tracking-wider font-black text-slate-500 text-center">IMC</th>
+                            <th class="px-6 py-4 text-[10px] uppercase tracking-wider font-black text-slate-500">Score de Risco</th>
+                            <th class="px-6 py-4 text-[10px] uppercase tracking-wider font-black text-slate-500">Comorbidades</th>
+                            <th class="px-6 py-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="pacientes-tbody">
+                        <tr class="bg-primary-container/30 hover:bg-primary-container/40 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs">MS</div>
+                                    <span class="text-sm font-bold text-slate-900">Maria das Dores Silva</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600">72 anos</td>
+                            <td class="px-6 py-4 text-sm font-bold text-center text-slate-900">38.4</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-red-50 text-red-600 border border-red-200 flex items-center w-fit gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                    9.2 Crítico
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-wrap gap-1">
+                                    <span class="px-2 py-0.5 bg-slate-100 text-[10px] font-medium text-slate-600 rounded">Diabetes T2</span>
+                                    <span class="px-2 py-0.5 bg-slate-100 text-[10px] font-medium text-slate-600 rounded">HAS</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button class="text-primary text-xs font-black uppercase tracking-widest hover:underline">Ver Prontuário</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-xs">JO</div>
+                                    <span class="text-sm font-bold text-slate-900">João Oliveira Neto</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600">68 anos</td>
+                            <td class="px-6 py-4 text-sm font-bold text-center text-slate-900">35.2</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center w-fit gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    6.8 Alerta
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">Apneia, HAS</td>
+                            <td class="px-6 py-4 text-right">
+                                <button class="text-primary text-xs font-black uppercase tracking-widest hover:underline">Ver Prontuário</button>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-500 text-xs">AC</div>
+                                    <span class="text-sm font-bold text-slate-900">Ana Cláudia Mendes</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600">75 anos</td>
+                            <td class="px-6 py-4 text-sm font-bold text-center text-slate-900">41.7</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-red-50 text-red-600 border border-red-200 flex items-center w-fit gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                    8.4 Crítico
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500">DM2, IRC</td>
+                            <td class="px-6 py-4 text-right">
+                                <button class="text-primary text-xs font-black uppercase tracking-widest hover:underline">Ver Prontuário</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex items-center justify-between">
+                <p class="text-xs text-slate-500 font-medium">Exibindo 3 de 485 pacientes</p>
+                <div class="flex items-center gap-2">
+                    <button class="p-1 hover:bg-slate-200 rounded"><span class="material-symbols-outlined text-base">chevron_left</span></button>
+                    <span class="text-xs font-bold text-slate-900">1</span>
+                    <button class="p-1 hover:bg-slate-200 rounded"><span class="material-symbols-outlined text-base">chevron_right</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="col-span-12 lg:col-span-4">
+        <div class="bg-white rounded-xl shadow-sm border-l-4 border-l-red-500 overflow-hidden border border-slate-200 sticky top-24">
+            <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-lg bg-primary-container flex items-center justify-center">
+                            <span class="material-symbols-outlined text-primary text-3xl">person</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900 leading-tight">Maria das Dores Silva</h3>
+                            <p class="text-sm font-medium text-slate-500">72 anos • F • CNS: 94821</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-red-50 p-3 rounded-lg border border-red-100">
+                    <span class="material-symbols-outlined text-red-500" style="font-variation-settings: 'FILL' 1;">warning</span>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-wider text-red-700">Score ML Crítico</p>
+                        <p class="text-lg font-black text-red-600">9.2 / 10.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6">
+                <div>
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">show_chart</span>
+                        Evolução Clínica (12 Meses)
+                    </h4>
+                    <div class="h-32 w-full bg-slate-50 rounded-lg flex items-end justify-between p-3 relative">
+                        <div class="flex flex-col items-center gap-1"><div class="w-3 bg-primary/30 h-12 rounded-t-sm"></div><span class="text-[9px] font-bold text-slate-400">JAN</span></div>
+                        <div class="flex flex-col items-center gap-1"><div class="w-3 bg-primary/30 h-16 rounded-t-sm"></div><span class="text-[9px] font-bold text-slate-400">MAR</span></div>
+                        <div class="flex flex-col items-center gap-1"><div class="w-3 bg-primary/30 h-14 rounded-t-sm"></div><span class="text-[9px] font-bold text-slate-400">MAI</span></div>
+                        <div class="flex flex-col items-center gap-1"><div class="w-3 bg-primary/30 h-20 rounded-t-sm"></div><span class="text-[9px] font-bold text-slate-400">JUL</span></div>
+                        <div class="flex flex-col items-center gap-1"><div class="w-3 bg-primary/60 h-24 rounded-t-sm"></div><span class="text-[9px] font-bold text-slate-400">SET</span></div>
+                        <div class="flex flex-col items-center gap-1"><div class="w-3 bg-primary h-28 rounded-t-sm"></div><span class="text-[9px] font-bold text-slate-900">NOV</span></div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">medical_services</span>
+                        Resumo de Saúde
+                    </h4>
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                        <span class="text-sm font-bold text-slate-900">Diabetes Tipo 2</span>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Descontrolada</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                        <span class="text-sm font-bold text-slate-900">HAS</span>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded">Monitorada</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                        <span class="text-sm font-bold text-slate-900">Osteoartrite</span>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-slate-200 text-slate-600 rounded">Sintomática</span>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-yellow-800 mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                        Insights de Predição (ML)
+                    </h4>
+                    <p class="text-sm text-yellow-900 leading-relaxed font-medium italic">
+                        "Aumento súbito de peso (+4.2kg em 60 dias) e baixa adesão às visitas. Tendência de agravamento em biomarcadores de glicemia."
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button class="bg-primary text-white py-3 px-4 rounded font-black text-xs tracking-widest uppercase hover:opacity-90">Prescrever Visita</button>
+                    <button class="border-2 border-slate-200 text-slate-900 py-3 px-4 rounded font-black text-xs tracking-widest uppercase hover:bg-slate-50">Histórico</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
