@@ -5,7 +5,6 @@ IMPORTANTE: Este script insere dados FICTÍCIOS apenas para testar o sistema.
 Os dados reais devem vir do e-SUS após anonimização adequada.
 """
 
-from src.database.connection import DatabaseConnection
 import sys
 from pathlib import Path
 from datetime import date, timedelta
@@ -14,6 +13,8 @@ import hashlib
 
 # Adicionar caminho para importar módulos
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
+from src.database.connection import DatabaseConnection
 
 
 def gerar_codigo_anonimo(id_paciente):

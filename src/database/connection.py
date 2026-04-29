@@ -5,16 +5,18 @@ Este módulo fornece funções para conectar ao banco de dados
 e executar queries de forma segura.
 """
 
-from config import DatabaseConfig
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from sqlalchemy import create_engine
 import logging
 import sys
 from pathlib import Path
 
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from sqlalchemy import create_engine, text
+
 # Adicionar o diretório raiz ao path para importar config
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
+from config import DatabaseConfig
 
 
 logger = logging.getLogger(__name__)
@@ -58,7 +60,7 @@ class DatabaseConnection:
             )
             # Testar conexão
             with self.engine.connect() as conn:
-                conn.execute("SELECT 1")
+                conn.execute(text("SELECT 1"))
 
             logger.info("Engine SQLAlchemy criada com sucesso")
             return self.engine
