@@ -1,0 +1,1 @@
+"""Namespaces da API SAD."""
