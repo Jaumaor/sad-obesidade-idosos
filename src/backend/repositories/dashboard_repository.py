@@ -33,36 +33,39 @@ class DashboardRepository:
         query = self._load_query("territorio_estatisticas.sql")
         return self.db.execute_query(query)
 
-    def get_paciente_detalhes(self, paciente_id: str):
-        """Retorna detalhes completos de um paciente específico"""
+    def get_paciente_detalhes(self, paciente_id):
+        """Retorna detalhes completos de um paciente (co_seq_cidadao)"""
         query = self._load_query("paciente_detalhes.sql")
-        result = self.db.execute_query(query, params={"paciente_id": paciente_id})
+        result = self.db.execute_query(query, params={"paciente_id": int(paciente_id)})
         return result[0] if result else None
 
-    def get_paciente_acompanhamentos(self, paciente_id: str, limite: int = 50):
-        """Retorna histórico de acompanhamentos (visitas/consultas) de um paciente"""
+    def get_paciente_acompanhamentos(self, paciente_id, limite: int = 50):
+        """Retorna histórico de medições de um paciente (dados e-SUS)"""
         query = self._load_query("paciente_acompanhamentos.sql")
-        return self.db.execute_query(query, params={"paciente_id": paciente_id, "limite": limite})
+        return self.db.execute_query(query, params={"paciente_id": int(paciente_id), "limite": limite})
 
-    def get_paciente_comorbidades(self, paciente_id: str):
-        """Retorna comorbidades (condições crônicas) de um paciente"""
+    def get_paciente_comorbidades(self, paciente_id):
+        """Retorna comorbidades via CID-10 do e-SUS"""
         query = self._load_query("paciente_comorbidades.sql")
-        return self.db.execute_query(query, params={"paciente_id": paciente_id})
+        return self.db.execute_query(query, params={"paciente_id": int(paciente_id)})
 
-    def get_paciente_alertas(self, paciente_id: str, limite: int = 50):
-        """Retorna alertas gerados para um paciente"""
+    def get_paciente_alertas(self, paciente_id, limite: int = 50):
+        """Retorna alertas gerados on-the-fly para um paciente"""
         query = self._load_query("paciente_alertas.sql")
-        return self.db.execute_query(query, params={"paciente_id": paciente_id, "limite": limite})
+        return self.db.execute_query(query, params={"paciente_id": int(paciente_id), "limite": limite})
 
-    def buscar_pacientes(self, territorio_ids=None, unidade_saude_ids=None, 
+    def get_mapa_calor(self):
+        """Retorna pontos geográficos com intensidade de risco para heatmap."""
+        query = self._load_query("mapa_calor.sql")
+        return self.db.execute_query(query)
+
+    def buscar_pacientes(self, territorio_ids=None, unidade_saude_ids=None,
                         idade_minima=None, idade_maxima=None, em_acompanhamento=None, limite=100):
-        """Busca pacientes com filtros avançados"""
+        """Busca pacientes com filtros (dados via MV do e-SUS)"""
         query = self._load_query("pacientes_busca.sql")
         return self.db.execute_query(
             query,
             params={
-                "territorio_ids": territorio_ids,
-                "unidade_saude_ids": unidade_saude_ids,
                 "idade_minima": idade_minima,
                 "idade_maxima": idade_maxima,
                 "em_acompanhamento": em_acompanhamento,

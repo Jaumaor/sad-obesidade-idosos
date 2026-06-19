@@ -52,6 +52,22 @@ class DashboardService:
         df = pd.DataFrame(rows)
         return df.rename(columns={"risco": "Risco", "quantidade": "Quantidade"})
 
+    def get_mapa_calor(self) -> list:
+        """Retorna lista de pontos [lat, lon, intensidade] para heatmap."""
+        rows = self.repo.get_mapa_calor()
+        if not rows:
+            return []
+        return [
+            {
+                "lat": float(r["lat"]),
+                "lon": float(r["lon"]),
+                "intensidade": float(r["intensidade"]),
+                "nivel_risco": r["nivel_risco"],
+                "bairro": r.get("bairro"),
+            }
+            for r in rows
+        ]
+
     def get_territorio_estatisticas_dataframe(self) -> pd.DataFrame:
         rows = self.repo.get_territorio_estatisticas()
         if not rows:

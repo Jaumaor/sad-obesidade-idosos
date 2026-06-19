@@ -1,10 +1,13 @@
 """
 Módulo de Predição de Risco para o SAD
-Usado pela API para calcular scores em produção
+Usado pela API para calcular scores em produção.
+
+Gera as 33 features numéricas esperadas pelo GradientBoosting treinado.
 """
 
 import pickle
 import json
+import math
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -13,9 +16,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Estatísticas do dataset de treino (para Z-scores em produção)
+_TRAIN_STATS = {
+    'imc': {'mean': 39.32, 'std': 4.49},
+    'idade': {'mean': 67.50, 'std': 6.48},
+}
+
+
 class RiskPredictor:
     """
-    Preditor de risco de abandono/complicações para idosos obesos
+    Preditor de risco de abandono/complicações para idosos obesos.
+    Gera as 33 features numéricas alinhadas com o modelo treinado.
     """
     
     def __init__(self, model_path: Optional[str] = None):
@@ -50,7 +61,6 @@ class RiskPredictor:
             
         except FileNotFoundError:
             logger.error(f"Modelo não encontrado em {self.model_path}")
-            # Fallback: usar regras apenas
             self.modelo = None
         except Exception as e:
             logger.error(f"Erro ao carregar modelo: {e}")
@@ -79,7 +89,7 @@ class RiskPredictor:
         if self.modelo is None:
             raise ValueError("Modelo não carregado")
         
-        # Preparar features no formato esperado
+        # Preparar features no formato esperado (33 numéricas)
         features = self._extrair_features(paciente)
         
         # Criar DataFrame com mesma ordem de features do treino
@@ -96,7 +106,7 @@ class RiskPredictor:
         if self.scaler is not None:
             X_scaled = self.scaler.transform(X)
         else:
-            X_scaled = X.values
+            X_scaled = X
         
         # Predição
         score = self.modelo.predict_proba(X_scaled)[0][1]  # Prob classe 1 (alto risco)
@@ -111,7 +121,7 @@ class RiskPredictor:
         return {
             'score_risco': round(score_int, 1),
             'nivel_risco': nivel,
-            'probabilidade_abandono': round(score, 4),
+            'probabilidade_alto_risco': round(score, 4),
             'fatores_risco': fatores,
             'metodo': 'machine_learning',
             'modelo_versao': self.model_package.get('version', '1.0.0')
@@ -136,7 +146,7 @@ class RiskPredictor:
             score += 10
         
         # 2. IMC
-        imc = paciente.get('imc_calculado', 0)
+        imc = paciente.get('imc', 0) or paciente.get('imc_calculado', 0)
         if imc >= 45:
             score += 25
             fatores.append(f'IMC crítico ({imc:.1f})')
@@ -199,93 +209,125 @@ class RiskPredictor:
         return self.calcular_risco_regras(paciente)
     
     def _extrair_features(self, paciente: Dict) -> Dict:
-        """Extrai features do dicionário do paciente"""
-        features = {}
+        """
+        Extrai as 33 features numéricas esperadas pelo modelo.
         
-        # Features numéricas base
-        features['idade'] = paciente.get('idade', 60)
-        features['nu_peso'] = paciente.get('peso_kg', 80)
-        features['nu_altura'] = paciente.get('altura_m', 1.65) * 100  # cm
-        features['imc_calculado'] = paciente.get('imc', 35)
-        features['excesso_peso_kg'] = features['nu_peso'] - (24.9 * ((features['nu_altura']/100) ** 2))
-        features['nu_glicemia'] = paciente.get('glicemia_mg_dl', 100)
-        features['nu_pressao_arterial_maxima'] = paciente.get('pa_sistolica', 120)
-        features['nu_pressao_arterial_minima'] = paciente.get('pa_diastolica', 80)
-        features['total_comorbidades'] = paciente.get('total_comorbidades', 0)
-        features['dias_sem_visita'] = paciente.get('dias_sem_visita', 0)
+        Chaves aceitas no dict paciente:
+            idade, peso_kg, altura_cm (ou altura_m), imc,
+            pa_sistolica, pa_diastolica, glicemia_mg_dl,
+            total_comorbidades, dias_sem_visita,
+            tem_diabetes, tem_hipertensao, tem_doenca_cardiaca,
+            tem_dislipidemia, tem_irc, tem_depressao, tem_artrose,
+            sexo ('F' ou 'M')
+        """
+        f = {}
         
-        # Score comorbidades (simplificado)
-        score_comorb = 0
-        if paciente.get('tem_diabetes'):
-            score_comorb += 2
-        if paciente.get('tem_hipertensao'):
-            score_comorb += 1
-        if paciente.get('tem_doenca_cardiaca'):
-            score_comorb += 3
-        if paciente.get('tem_dislipidemia'):
-            score_comorb += 1
-        if paciente.get('tem_irc'):
-            score_comorb += 3
-        features['score_comorbidades'] = score_comorb
+        # --- Valores base ---
+        idade = float(paciente.get('idade', 65))
+        imc = float(paciente.get('imc', 0) or paciente.get('imc_calculado', 35))
+        peso = float(paciente.get('peso_kg', 80))
         
-        # Features booleanas
-        features['tem_diabetes'] = int(paciente.get('tem_diabetes', False))
-        features['tem_hipertensao'] = int(paciente.get('tem_hipertensao', False))
-        features['tem_doenca_cardiaca'] = int(paciente.get('tem_doenca_cardiaca', False))
-        features['tem_dislipidemia'] = int(paciente.get('tem_dislipidemia', False))
-        features['tem_irc'] = int(paciente.get('tem_irc', False))
+        # altura: aceita cm ou metros
+        alt = float(paciente.get('altura_cm', 0) or 0)
+        if alt == 0:
+            alt_m = float(paciente.get('altura_m', 1.55) or 1.55)
+            alt = alt_m * 100  # converter para cm
         
-        # Features categóricas (dummies)
-        # Faixa etária
-        idade = features['idade']
-        faixas = ['60-65', '66-70', '71-75', '76-80', '80+']
-        for faixa in faixas:
-            features[f'faixa_etaria_{faixa}'] = 0
-        if idade <= 65:
-            features['faixa_etaria_60-65'] = 1
-        elif idade <= 70:
-            features['faixa_etaria_66-70'] = 1
-        elif idade <= 75:
-            features['faixa_etaria_71-75'] = 1
-        elif idade <= 80:
-            features['faixa_etaria_76-80'] = 1
+        pa_sis = paciente.get('pa_sistolica')
+        pa_dia = paciente.get('pa_diastolica')
+        glicemia = paciente.get('glicemia_mg_dl')
+        dias = float(paciente.get('dias_sem_visita', 0) or 0)
+        sexo = paciente.get('sexo', paciente.get('no_sexo', 'F'))
+        
+        # ─── 1. ANTROPOMÉTRICAS ────────────────────────────────────
+        f['imc'] = imc
+        f['imc_z'] = (imc - _TRAIN_STATS['imc']['mean']) / _TRAIN_STATS['imc']['std']
+        
+        peso_ideal = 24.9 * ((alt / 100) ** 2)
+        f['excesso_peso_kg'] = peso - peso_ideal
+        f['excesso_peso_pct'] = (f['excesso_peso_kg'] / peso_ideal) * 100 if peso_ideal > 0 else 0
+        
+        if imc >= 50:
+            f['grau_obesidade_num'] = 3
+        elif imc >= 40:
+            f['grau_obesidade_num'] = 2
         else:
-            features['faixa_etaria_80+'] = 1
+            f['grau_obesidade_num'] = 1
         
-        # Grau obesidade
-        imc = features['imc_calculado']
-        features['grau_obesidade_Grau II'] = 1 if 35 <= imc < 40 else 0
-        features['grau_obesidade_Grau III'] = 1 if imc >= 40 else 0
+        # ─── 2. DEMOGRÁFICAS ──────────────────────────────────────
+        f['idade'] = idade
+        f['idade_z'] = (idade - _TRAIN_STATS['idade']['mean']) / _TRAIN_STATS['idade']['std']
+        f['sexo_feminino'] = 1 if str(sexo).upper().startswith('F') else 0
         
-        # Categorias clínicas
-        pa = features['nu_pressao_arterial_maxima']
-        for cat in ['Elevada', 'Hipertensao_1', 'Hipertensao_2']:
-            features[f'categoria_pa_{cat}'] = 0
-        if 120 <= pa < 140:
-            features['categoria_pa_Elevada'] = 1
-        elif 140 <= pa < 160:
-            features['categoria_pa_Hipertensao_1'] = 1
-        elif pa >= 160:
-            features['categoria_pa_Hipertensao_2'] = 1
+        if idade <= 65:
+            f['faixa_etaria_num'] = 1
+        elif idade <= 70:
+            f['faixa_etaria_num'] = 2
+        elif idade <= 75:
+            f['faixa_etaria_num'] = 3
+        elif idade <= 80:
+            f['faixa_etaria_num'] = 4
+        else:
+            f['faixa_etaria_num'] = 5
         
-        glicemia = features['nu_glicemia']
-        for cat in ['Pre_diabetes', 'Diabetes']:
-            features[f'categoria_glicemia_{cat}'] = 0
-        if 100 <= glicemia < 126:
-            features['categoria_glicemia_Pre_diabetes'] = 1
-        elif glicemia >= 126:
-            features['categoria_glicemia_Diabetes'] = 1
+        # ─── 3. CLÍNICAS ─────────────────────────────────────────
+        f['pa_sistolica'] = float(pa_sis) if pa_sis is not None else 130.0
+        f['pa_diastolica'] = float(pa_dia) if pa_dia is not None else 80.0
+        f['pa_pulso'] = f['pa_sistolica'] - f['pa_diastolica']
+        f['pa_media'] = f['pa_diastolica'] + (f['pa_pulso'] / 3)
         
-        # Risco abandono
-        dias = features['dias_sem_visita']
-        for cat in ['Medio', 'Alto']:
-            features[f'risco_abandono_{cat}'] = 0
-        if dias > 60:
-            features['risco_abandono_Alto'] = 1
-        elif dias > 45:
-            features['risco_abandono_Medio'] = 1
+        # Categoria PA numérica
+        if pa_sis is None:
+            f['pa_categoria_num'] = -1
+        elif f['pa_sistolica'] < 120:
+            f['pa_categoria_num'] = 0
+        elif f['pa_sistolica'] < 140:
+            f['pa_categoria_num'] = 1
+        elif f['pa_sistolica'] < 160:
+            f['pa_categoria_num'] = 2
+        else:
+            f['pa_categoria_num'] = 3
         
-        return features
+        f['glicemia'] = float(glicemia) if glicemia is not None else 110.0
+        
+        # Categoria glicemia numérica
+        if glicemia is None:
+            f['glicemia_categoria_num'] = -1
+        elif f['glicemia'] < 100:
+            f['glicemia_categoria_num'] = 0
+        elif f['glicemia'] < 126:
+            f['glicemia_categoria_num'] = 1
+        else:
+            f['glicemia_categoria_num'] = 2
+        
+        # ─── 4. COMORBIDADES ─────────────────────────────────────
+        f['total_comorbidades'] = int(paciente.get('total_comorbidades', 0) or 0)
+        
+        # Flags binárias
+        comorb_keys = ['tem_diabetes', 'tem_hipertensao', 'tem_doenca_cardiaca',
+                       'tem_dislipidemia', 'tem_irc', 'tem_depressao', 'tem_artrose']
+        for k in comorb_keys:
+            f[k] = int(bool(paciente.get(k, False)))
+        
+        # Score ponderado
+        pesos = {'tem_diabetes': 2, 'tem_hipertensao': 1, 'tem_doenca_cardiaca': 3,
+                 'tem_dislipidemia': 1, 'tem_irc': 3, 'tem_depressao': 1, 'tem_artrose': 1}
+        f['score_comorbidades'] = sum(f[k] * p for k, p in pesos.items())
+        
+        f['n_condicoes_ativas'] = sum(f[k] for k in comorb_keys)
+        f['multimorbidade'] = 1 if f['n_condicoes_ativas'] >= 3 else 0
+        
+        # ─── 5. COMPORTAMENTAIS ──────────────────────────────────
+        f['dias_sem_visita'] = dias
+        f['dias_sem_visita_log'] = math.log1p(dias)
+        
+        # ─── 6. INTERAÇÕES ───────────────────────────────────────
+        f['imc_x_idade'] = imc * idade / 100
+        f['imc_x_comorbidades'] = imc * f['score_comorbidades']
+        f['idade_x_comorbidades'] = idade * f['score_comorbidades'] / 10
+        f['imc_x_dias_sem_visita'] = imc * f['dias_sem_visita_log']
+        
+        return f
     
     def _classificar_nivel(self, score: int) -> str:
         """Classifica o nível de risco baseado no score"""
@@ -302,14 +344,34 @@ class RiskPredictor:
         """Identifica principais fatores de risco"""
         fatores = []
         
+        imc = paciente.get('imc', 0) or paciente.get('imc_calculado', 0)
+        
         if paciente.get('dias_sem_visita', 0) > 60:
             fatores.append('Atraso no acompanhamento')
-        if paciente.get('imc', 0) >= 40:
+        if imc >= 40:
             fatores.append('Obesidade Grau III')
-        if paciente.get('tem_diabetes') and paciente.get('tem_doenca_cardiaca'):
-            fatores.append('Diabetes + Doença cardíaca')
+        elif imc >= 50:
+            fatores.append('Super Obesidade')
+        if paciente.get('tem_diabetes'):
+            fatores.append('Diabetes Mellitus')
+        if paciente.get('tem_doenca_cardiaca'):
+            fatores.append('Doença cardiovascular')
+        if paciente.get('tem_irc'):
+            fatores.append('Insuficiência renal crônica')
         if paciente.get('total_comorbidades', 0) >= 3:
-            fatores.append('Múltiplas comorbidades')
+            fatores.append('Multimorbidade (≥3 condições)')
+        
+        pa = paciente.get('pa_sistolica')
+        if pa and pa >= 160:
+            fatores.append('Hipertensão Estágio 2')
+        
+        glic = paciente.get('glicemia_mg_dl')
+        if glic and glic >= 200:
+            fatores.append('Glicemia muito elevada')
+        
+        idade = paciente.get('idade', 60)
+        if idade >= 80:
+            fatores.append(f'Idade avançada ({idade} anos)')
         
         return fatores
     
@@ -336,30 +398,57 @@ def get_predictor() -> RiskPredictor:
 
 
 if __name__ == "__main__":
-    # Teste
-    print("Testando predictor...")
+    # Teste com 3 perfis diferentes
+    print("=" * 60)
+    print("TESTE DO PREDITOR DE RISCO")
+    print("=" * 60)
     
-    # Criar paciente de teste
-    paciente_teste = {
-        'idade': 72,
-        'peso_kg': 95,
-        'altura_m': 1.60,
-        'imc': 37.1,
-        'glicemia_mg_dl': 180,
-        'pa_sistolica': 160,
-        'pa_diastolica': 95,
-        'total_comorbidades': 3,
-        'dias_sem_visita': 75,
-        'tem_diabetes': True,
-        'tem_hipertensao': True,
-        'tem_doenca_cardiaca': False,
-        'tem_dislipidemia': True,
-        'tem_irc': False
-    }
+    casos = [
+        {
+            'nome': 'Baixo Risco',
+            'dados': {
+                'idade': 62, 'peso_kg': 90, 'altura_cm': 160,
+                'imc': 35.2, 'glicemia_mg_dl': 95,
+                'pa_sistolica': 125, 'pa_diastolica': 80,
+                'total_comorbidades': 1, 'dias_sem_visita': 15,
+                'tem_diabetes': False, 'tem_hipertensao': True,
+                'tem_doenca_cardiaca': False, 'tem_dislipidemia': False,
+                'tem_irc': False, 'tem_depressao': False, 'tem_artrose': False,
+                'sexo': 'F'
+            }
+        },
+        {
+            'nome': 'Alto Risco',
+            'dados': {
+                'idade': 72, 'peso_kg': 105, 'altura_cm': 158,
+                'imc': 42.1, 'glicemia_mg_dl': 180,
+                'pa_sistolica': 165, 'pa_diastolica': 100,
+                'total_comorbidades': 4, 'dias_sem_visita': 95,
+                'tem_diabetes': True, 'tem_hipertensao': True,
+                'tem_doenca_cardiaca': False, 'tem_dislipidemia': True,
+                'tem_irc': False, 'tem_depressao': False, 'tem_artrose': True,
+                'sexo': 'F'
+            }
+        },
+        {
+            'nome': 'Risco Crítico',
+            'dados': {
+                'idade': 81, 'peso_kg': 120, 'altura_cm': 155,
+                'imc': 49.9, 'glicemia_mg_dl': 250,
+                'pa_sistolica': 180, 'pa_diastolica': 110,
+                'total_comorbidades': 6, 'dias_sem_visita': 200,
+                'tem_diabetes': True, 'tem_hipertensao': True,
+                'tem_doenca_cardiaca': True, 'tem_dislipidemia': True,
+                'tem_irc': True, 'tem_depressao': False, 'tem_artrose': True,
+                'sexo': 'M'
+            }
+        }
+    ]
     
     predictor = RiskPredictor()
-    resultado = predictor.calcular_risco(paciente_teste)
     
-    print("\nResultado:")
-    print(json.dumps(resultado, indent=2, ensure_ascii=False))
-    print(f"\nRecomendação: {predictor.get_recomendacao(resultado['nivel_risco'])}")
+    for caso in casos:
+        print(f"\n--- {caso['nome']} ---")
+        resultado = predictor.calcular_risco(caso['dados'])
+        print(json.dumps(resultado, indent=2, ensure_ascii=False))
+        print(f"Recomendação: {predictor.get_recomendacao(resultado['nivel_risco'])}")

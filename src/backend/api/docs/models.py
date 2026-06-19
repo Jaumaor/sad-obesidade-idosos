@@ -154,6 +154,16 @@ def register_models(api):
                 "score_risco": fields.Float(example=8.2),
             },
         ),
+        "mapa_calor_ponto": api.model(
+            "MapaCalorPonto",
+            {
+                "lat": fields.Float(example=-14.86),
+                "lon": fields.Float(example=-40.84),
+                "intensidade": fields.Float(example=72.0),
+                "nivel_risco": fields.String(example="Critico"),
+                "bairro": fields.String(example="Brasil"),
+            },
+        ),
         "risco_calculado": api.model(
             "RiscoCalculado",
             {

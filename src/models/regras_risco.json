@@ -1,0 +1,24 @@
+{
+  "risco_critico": {
+    "condicoes": [
+      "dias_sem_visita > 90",
+      "imc_calculado >= 40",
+      "score_comorbidades >= 5"
+    ],
+    "acao": "Visita domiciliar prioritária em 24h"
+  },
+  "risco_alto": {
+    "condicoes": [
+      "dias_sem_visita > 60",
+      "tem_diabetes == True AND tem_doenca_cardiaca == True"
+    ],
+    "acao": "Agendar consulta em 7 dias"
+  },
+  "risco_moderado": {
+    "condicoes": [
+      "dias_sem_visita > 45",
+      "categoria_pa == \"Hipertensao_2\""
+    ],
+    "acao": "Telemonitoramento + retorno em 15 dias"
+  }
+}
