@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2c684a",
+                        "primary-container": "#dcfce7",
+                    },
+                    fontFamily: { "display": ["Inter", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <title>Login | SENTINELA</title>
+</head>
+<body class="bg-slate-50 font-display min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md">
+        <!-- Logo / Branding -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-3xl" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">SENTINELA</h1>
+            <p class="text-sm text-slate-500 font-medium mt-1">Sistema de Apoio à Decisão — Monitoramento de Obesidade em Idosos</p>
+            <p class="text-xs text-slate-400 mt-0.5">SUS • Vitória da Conquista - BA</p>
+        </div>
+
+        <!-- Card de Login -->
+        <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
+            <div class="p-8">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="mb-4 p-3 rounded-lg text-sm font-medium
+                    {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200
+                    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="/login" class="space-y-5">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Email</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-3 text-slate-400 text-xl">mail</span>
+                            <input type="email" name="email" required autofocus
+                                   placeholder="seu.email@exemplo.com"
+                                   class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium
+                                          focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all"/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Senha</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-3 text-slate-400 text-xl">lock</span>
+                            <input type="password" name="senha" required
+                                   placeholder="••••••••"
+                                   class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium
+                                          focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white transition-all"/>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-primary text-white py-3.5 rounded-xl font-black text-sm uppercase tracking-widest
+                                   hover:bg-primary/90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+                        Entrar no Sistema
+                    </button>
+                </form>
+            </div>
+
+            <div class="bg-slate-50 px-8 py-4 border-t border-slate-100">
+                <p class="text-[10px] text-slate-400 text-center leading-relaxed">
+                    Acesso restrito a profissionais de saúde autorizados.<br>
+                    Usuário padrão: <strong>admin@sentinela.local</strong> / <strong>sentinela2025</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-[10px] text-slate-400 mt-6">
+            SENTINELA v1.0 • Secretaria Municipal de Saúde • Vitória da Conquista - BA
+        </p>
+    </div>
+
+</body>
+</html>
