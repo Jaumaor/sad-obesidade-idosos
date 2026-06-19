@@ -57,6 +57,39 @@ def create_dashboard_namespace(deps, models):
             finally:
                 db.close()
 
+    @ns.route("/territorio/estatisticas")
+    class TerritorioEstatisticasResource(Resource):
+        @ns.doc("get_territorio_estatisticas")
+        def get(self):
+            """Estatísticas agregadas por território/bairro."""
+            db, service = deps.build_dashboard_service()
+            try:
+                rows = service.repo.get_territorio_estatisticas()
+                result = []
+                for r in rows:
+                    result.append({
+                        "territorio": r.get("territorio"),
+                        "total_pacientes": int(r.get("total_pacientes", 0)),
+                        "pacientes_ativos": int(r.get("pacientes_ativos", 0)),
+                        "pacientes_faltosos": int(r.get("pacientes_faltosos", 0)),
+                        "media_score_risco": round(float(r.get("media_score_risco", 0)), 1),
+                    })
+                return result, 200
+            finally:
+                db.close()
+
+    @ns.route("/mapa/calor")
+    class MapaCalorResource(Resource):
+        @ns.doc("get_mapa_calor")
+        @ns.marshal_list_with(models["mapa_calor_ponto"])
+        def get(self):
+            """Pontos geográficos com intensidade de risco para heatmap Leaflet."""
+            db, service = deps.build_dashboard_service()
+            try:
+                return service.get_mapa_calor(), 200
+            finally:
+                db.close()
+
     @ns.route("/materialized-views/refresh")
     class RefreshMaterializedViewsResource(Resource):
         @ns.doc("refresh_materialized_views")
