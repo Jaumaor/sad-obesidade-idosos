@@ -23,81 +23,67 @@ def extrair_amostra_idosos_obesidade(tamanho_amostra=10000):
     # Query otimizada - traz apenas o que precisamos
     # Usa TABLESAMPLE para amostragem aleatória do PostgreSQL
     query = """
-    WITH cidadaos_amostra AS (
-        -- Amostra aleatória sistemática + filtro de idade
-        SELECT 
-            co_seq_cidadao,
-            no_cidadao,  -- será anonimizado
-            nu_cpf,      -- será anonimizado
-            dt_nascimento,
-            ST_X(co_local_residencia) as longitude,
-            ST_Y(co_local_residencia) as latitude,
-            co_bairro,
-            st_faleceu
-        FROM tb_cidadao
-        WHERE dt_nascimento <= CURRENT_DATE - INTERVAL '60 years'  -- Idosos
-          AND st_faleceu = 0  -- Não falecidos
-          AND co_local_residencia IS NOT NULL  -- Tem coordenadas
-        TABLESAMPLE SYSTEM (1)  -- Amostra de 1% dos dados
-        LIMIT %s
+    WITH ultima_medicao AS (
+        -- Última medição de cada cidadão idoso (via tb_medicao -> atend_prof -> atend -> prontuario -> cidadao)
+        SELECT DISTINCT ON (c.co_seq_cidadao)
+            c.co_seq_cidadao,
+            c.dt_nascimento,
+            c.no_sexo,
+            c.no_bairro,
+            DATE_PART('year', AGE(CURRENT_DATE, c.dt_nascimento)) as idade,
+            CAST(m.nu_medicao_peso AS NUMERIC) as nu_peso,
+            CAST(m.nu_medicao_altura AS NUMERIC) as nu_altura,
+            CAST(m.nu_medicao_imc AS NUMERIC) as imc_calculado,
+            m.nu_medicao_pressao_arterial,
+            CAST(m.nu_medicao_glicemia AS NUMERIC) as nu_glicemia,
+            m.dt_medicao,
+            CURRENT_DATE - m.dt_medicao::date as dias_desde_visita
+        FROM tb_medicao m
+        JOIN tb_atend_prof ap ON m.co_atend_prof = ap.co_seq_atend_prof
+        JOIN tb_atend a ON ap.co_seq_atend_prof = a.co_atend_prof
+        JOIN tb_prontuario pr ON a.co_prontuario = pr.co_seq_prontuario
+        JOIN tb_cidadao c ON pr.co_cidadao = c.co_seq_cidadao
+        WHERE m.nu_medicao_peso IS NOT NULL
+          AND m.nu_medicao_altura IS NOT NULL
+          AND c.dt_nascimento <= CURRENT_DATE - INTERVAL '60 years'
+          AND c.st_faleceu = 0
+        ORDER BY c.co_seq_cidadao, m.dt_medicao DESC
     ),
-    -- Buscar últimas medições antropométricas
-    ultimas_medicoes AS (
-        SELECT DISTINCT ON (co_seq_cidadao)
-            co_seq_cidadao,
-            nu_peso,
-            nu_altura,
-            dt_registro as dt_medicao
-        FROM tb_atendimento a
-        JOIN tb_avaliacao_elegibilidade ae ON a.co_seq_avaliacao_elegibilidade = ae.co_seq_avaliacao_elegibilidade
-        WHERE ae.nu_peso IS NOT NULL 
-          AND ae.nu_altura IS NOT NULL
-        ORDER BY co_seq_cidadao, dt_registro DESC
+    -- Filtrar apenas obesos (IMC >= 35)
+    idosos_obesos AS (
+        SELECT * FROM ultima_medicao
+        WHERE imc_calculado >= 35
     ),
-    -- Contar comorbidades
+    -- Contar comorbidades ativas por cidadão (join com tb_cid10 para obter código textual)
     comorbidades AS (
-        SELECT 
-            co_seq_cidadao,
+        SELECT
+            pr.co_cidadao as co_seq_cidadao,
             COUNT(*) as total_comorbidades,
-            array_agg(co_cid_10 ORDER BY dt_registro DESC) as cids
-        FROM tb_problema
-        WHERE st_ativo = 1
-        GROUP BY co_seq_cidadao
-    ),
-    -- Últimos exames (glicemia, pressão)
-    ultimos_exames AS (
-        SELECT DISTINCT ON (e.co_seq_cidadao)
-            e.co_seq_cidadao,
-            e.nu_glicemia,
-            e.nu_pressao_arterial_maxima,
-            e.nu_pressao_arterial_minima
-        FROM tb_exame e
-        WHERE e.dt_registro > CURRENT_DATE - INTERVAL '1 year'
-        ORDER BY e.co_seq_cidadao, e.dt_registro DESC
+            array_agg(DISTINCT cid.nu_cid10) as cids
+        FROM tb_problema p
+        JOIN tb_prontuario pr ON p.co_prontuario = pr.co_seq_prontuario
+        LEFT JOIN tb_cid10 cid ON p.co_cid10 = cid.co_cid10
+        GROUP BY pr.co_cidadao
     )
-    SELECT 
-        c.co_seq_cidadao,
-        c.dt_nascimento,
-        DATE_PART('year', AGE(CURRENT_DATE, c.dt_nascimento)) as idade,
-        c.longitude,
-        c.latitude,
-        c.co_bairro,
-        m.nu_peso,
-        m.nu_altura,
-        (m.nu_peso / (m.nu_altura/100 * m.nu_altura/100)) as imc_calculado,
-        co.total_comorbidades,
-        co.cids,
-        e.nu_glicemia,
-        e.nu_pressao_arterial_maxima,
-        e.nu_pressao_arterial_minima,
-        m.dt_medicao,
-        CURRENT_DATE - m.dt_registro as dias_desde_visita
-    FROM cidadaos_amostra c
-    LEFT JOIN ultimas_medicoes m ON c.co_seq_cidadao = m.co_seq_cidadao
-    LEFT JOIN comorbidades co ON c.co_seq_cidadao = co.co_seq_cidadao
-    LEFT JOIN ultimos_exames e ON c.co_seq_cidadao = e.co_seq_cidadao
-    WHERE m.nu_peso IS NOT NULL  -- Só com medições válidas
-      AND (m.nu_peso / (m.nu_altura/100 * m.nu_altura/100)) >= 35  -- Obesidade II/III
+    SELECT
+        io.co_seq_cidadao,
+        io.dt_nascimento,
+        io.no_sexo,
+        io.no_bairro,
+        io.idade,
+        io.nu_peso,
+        io.nu_altura,
+        io.imc_calculado,
+        io.nu_medicao_pressao_arterial,
+        io.nu_glicemia,
+        io.dt_medicao,
+        io.dias_desde_visita,
+        COALESCE(co.total_comorbidades, 0) as total_comorbidades,
+        co.cids
+    FROM idosos_obesos io
+    LEFT JOIN comorbidades co ON io.co_seq_cidadao = co.co_seq_cidadao
+    ORDER BY io.imc_calculado DESC
+    LIMIT %s
     """
     
     # Executar em chunks para não sobrecarregar memória
@@ -110,6 +96,22 @@ def extrair_amostra_idosos_obesidade(tamanho_amostra=10000):
     
     print(f"\n✅ Amostra obtida: {len(df):,} registros")
     print(f"Colunas: {list(df.columns)}")
+    
+    if len(df) == 0:
+        print("⚠️ Nenhum registro encontrado!")
+        db.close()
+        return df
+    
+    # Separar pressão arterial (vem como "146/90")
+    pa_split = df['nu_medicao_pressao_arterial'].str.split('/', expand=True)
+    df['nu_pressao_arterial_maxima'] = pd.to_numeric(pa_split[0], errors='coerce')
+    df['nu_pressao_arterial_minima'] = pd.to_numeric(pa_split[1], errors='coerce') if pa_split.shape[1] > 1 else np.nan
+    df.drop(columns=['nu_medicao_pressao_arterial'], inplace=True)
+    
+    # Converter tipos numéricos
+    for col in ['nu_peso', 'nu_altura', 'imc_calculado', 'nu_glicemia']:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    
     print(f"\nDistribuição do IMC:")
     print(df['imc_calculado'].describe())
     

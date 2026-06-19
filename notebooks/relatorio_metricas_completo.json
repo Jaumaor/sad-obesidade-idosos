@@ -1,0 +1,169 @@
+{
+  "modelo": "GradientBoosting",
+  "metricas_teste": {
+    "accuracy": 0.9408,
+    "precision": 0.9359,
+    "recall_sensibilidade": 0.9481,
+    "especificidade": 0.9333,
+    "f1_score": 0.9419,
+    "auc_roc": 0.992,
+    "auc_pr": 0.9926,
+    "mcc": 0.8816,
+    "brier_score": 0.0397,
+    "log_loss": 0.1143
+  },
+  "cross_validation": {
+    "mean": 0.9761,
+    "std": 0.0087,
+    "folds": [
+      0.9831,
+      0.9735,
+      0.9702,
+      0.9648,
+      0.9888
+    ]
+  },
+  "matriz_confusao": {
+    "verdadeiro_negativo": 70,
+    "falso_positivo": 5,
+    "falso_negativo": 4,
+    "verdadeiro_positivo": 73
+  },
+  "n_amostras_treino": 605,
+  "n_amostras_teste": 152,
+  "n_features": 33,
+  "features_ranking": [
+    {
+      "feature": "imc_x_comorbidades",
+      "importance": 0.41267651426970037
+    },
+    {
+      "feature": "glicemia_categoria_num",
+      "importance": 0.1130880867199743
+    },
+    {
+      "feature": "imc_x_dias_sem_visita",
+      "importance": 0.09603525407007703
+    },
+    {
+      "feature": "pa_sistolica",
+      "importance": 0.08361937143469057
+    },
+    {
+      "feature": "pa_media",
+      "importance": 0.07238816458136227
+    },
+    {
+      "feature": "dias_sem_visita_log",
+      "importance": 0.045840231642956676
+    },
+    {
+      "feature": "dias_sem_visita",
+      "importance": 0.04044325797431481
+    },
+    {
+      "feature": "pa_categoria_num",
+      "importance": 0.03578897311336429
+    },
+    {
+      "feature": "glicemia",
+      "importance": 0.021031611960739452
+    },
+    {
+      "feature": "excesso_peso_kg",
+      "importance": 0.010537778680787402
+    },
+    {
+      "feature": "pa_pulso",
+      "importance": 0.009328515993419892
+    },
+    {
+      "feature": "idade_x_comorbidades",
+      "importance": 0.009171557893352137
+    },
+    {
+      "feature": "excesso_peso_pct",
+      "importance": 0.007640627395387106
+    },
+    {
+      "feature": "imc_x_idade",
+      "importance": 0.00748043264621698
+    },
+    {
+      "feature": "pa_diastolica",
+      "importance": 0.006705188335529086
+    },
+    {
+      "feature": "imc",
+      "importance": 0.005973633094208167
+    },
+    {
+      "feature": "idade",
+      "importance": 0.005576801734887025
+    },
+    {
+      "feature": "imc_z",
+      "importance": 0.004192250022557412
+    },
+    {
+      "feature": "idade_z",
+      "importance": 0.003005542240442696
+    },
+    {
+      "feature": "total_comorbidades",
+      "importance": 0.002951316486116736
+    },
+    {
+      "feature": "tem_depressao",
+      "importance": 0.0018687301048486739
+    },
+    {
+      "feature": "sexo_feminino",
+      "importance": 0.0015514910247191175
+    },
+    {
+      "feature": "n_condicoes_ativas",
+      "importance": 0.000955928117430845
+    },
+    {
+      "feature": "tem_hipertensao",
+      "importance": 0.0007336138342497763
+    },
+    {
+      "feature": "score_comorbidades",
+      "importance": 0.0006123480081512907
+    },
+    {
+      "feature": "tem_diabetes",
+      "importance": 0.0005453836890336973
+    },
+    {
+      "feature": "tem_dislipidemia",
+      "importance": 0.00017552244447074033
+    },
+    {
+      "feature": "tem_artrose",
+      "importance": 4.606709816422314e-05
+    },
+    {
+      "feature": "faixa_etaria_num",
+      "importance": 2.7666004390940705e-05
+    },
+    {
+      "feature": "grau_obesidade_num",
+      "importance": 7.604609226870647e-06
+    },
+    {
+      "feature": "tem_irc",
+      "importance": 5.347752293552461e-07
+    },
+    {
+      "feature": "tem_doenca_cardiaca",
+      "importance": 0.0
+    },
+    {
+      "feature": "multimorbidade",
+      "importance": 0.0
+    }
+  ]
+}

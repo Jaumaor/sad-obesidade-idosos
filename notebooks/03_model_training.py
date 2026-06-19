@@ -8,6 +8,7 @@ import numpy as np
 import json
 import pickle
 from datetime import datetime
+from pathlib import Path
 
 from sklearn.model_selection import train_test_split, cross_val_score, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
@@ -152,7 +153,10 @@ def salvar_modelo(resultados, melhor_modelo, feature_names):
     }
     
     # Salvar com pickle
-    with open('../src/models/risk_model.pkl', 'wb') as f:
+    models_dir = Path(__file__).resolve().parent.parent / 'src' / 'models'
+    models_dir.mkdir(parents=True, exist_ok=True)
+    
+    with open(models_dir / 'risk_model.pkl', 'wb') as f:
         pickle.dump(model_package, f)
     
     # Salvar metadados
@@ -166,7 +170,7 @@ def salvar_modelo(resultados, melhor_modelo, feature_names):
         'data_treinamento': datetime.now().isoformat()
     }
     
-    with open('../src/models/risk_model_metadata.json', 'w') as f:
+    with open(models_dir / 'risk_model_metadata.json', 'w') as f:
         json.dump(metadata, f, indent=2)
     
     print(f"✅ Modelo salvo em: src/models/risk_model.pkl")
@@ -203,16 +207,23 @@ def gerar_regras_negocio(feature_importance):
         }
     }
     
-    with open('../src/models/regras_risco.json', 'w') as f:
+    models_dir = Path(__file__).resolve().parent.parent / 'src' / 'models'
+    with open(models_dir / 'regras_risco.json', 'w') as f:
         json.dump(regras, f, indent=2, ensure_ascii=False)
     
     print("✅ Regras salvas em: src/models/regras_risco.json")
 
 if __name__ == "__main__":
+    from pathlib import Path
+    
     # Carregar dados
     print("Carregando features...")
-    X = pd.read_csv('X_features.csv')
-    y = pd.read_csv('y_target.csv').iloc[:, 0]
+    data_dir = Path(__file__).parent
+    X = pd.read_csv(data_dir / 'X_features.csv')
+    y = pd.read_csv(data_dir / 'y_target.csv').iloc[:, 0]
+    
+    print(f"  X: {X.shape[0]} amostras, {X.shape[1]} features")
+    print(f"  y: {y.value_counts().to_dict()}")
     
     # Treinar
     resultados, melhor_modelo, splits = treinar_modelos(X, y)

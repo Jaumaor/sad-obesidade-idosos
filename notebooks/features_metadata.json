@@ -1,0 +1,54 @@
+{
+  "n_features": 33,
+  "n_samples": 757,
+  "features": [
+    "imc",
+    "imc_z",
+    "excesso_peso_kg",
+    "excesso_peso_pct",
+    "grau_obesidade_num",
+    "idade",
+    "idade_z",
+    "sexo_feminino",
+    "faixa_etaria_num",
+    "pa_sistolica",
+    "pa_diastolica",
+    "pa_pulso",
+    "pa_media",
+    "pa_categoria_num",
+    "glicemia",
+    "glicemia_categoria_num",
+    "total_comorbidades",
+    "score_comorbidades",
+    "tem_diabetes",
+    "tem_hipertensao",
+    "tem_doenca_cardiaca",
+    "tem_dislipidemia",
+    "tem_irc",
+    "tem_depressao",
+    "tem_artrose",
+    "n_condicoes_ativas",
+    "multimorbidade",
+    "dias_sem_visita",
+    "dias_sem_visita_log",
+    "imc_x_idade",
+    "imc_x_comorbidades",
+    "idade_x_comorbidades",
+    "imc_x_dias_sem_visita"
+  ],
+  "cols_imputadas": [
+    "pa_sistolica",
+    "pa_diastolica",
+    "pa_pulso",
+    "pa_media",
+    "glicemia"
+  ],
+  "target_distribution": {
+    "1": 382,
+    "0": 375
+  },
+  "score_stats": {
+    "mean": 51.74,
+    "std": 11.53
+  }
+}

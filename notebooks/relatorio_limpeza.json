@@ -1,0 +1,91 @@
+{
+  "data_limpeza": "2026-05-11T22:02:50.565869",
+  "registros_iniciais": 895,
+  "registros_finais": 757,
+  "removidos": 138,
+  "pct_removidos": 15.42,
+  "colunas_finais": [
+    "co_seq_cidadao",
+    "idade",
+    "nu_peso",
+    "nu_altura",
+    "imc_calculado",
+    "nu_glicemia",
+    "dt_medicao",
+    "dias_desde_visita",
+    "total_comorbidades",
+    "nu_pressao_arterial_maxima",
+    "nu_pressao_arterial_minima",
+    "grau_obesidade",
+    "faixa_etaria",
+    "categoria_pa",
+    "categoria_glicemia",
+    "tem_diabetes",
+    "tem_hipertensao",
+    "tem_doenca_cardiaca",
+    "tem_dislipidemia",
+    "tem_irc",
+    "tem_depressao",
+    "tem_artrose",
+    "score_comorbidades",
+    "risco_abandono",
+    "sexo"
+  ],
+  "etapas": [
+    {
+      "etapa": "  Alturas convertidas de metros para cm: 0",
+      "removidos": 0,
+      "restantes": 895
+    },
+    {
+      "etapa": "  Alturas convertidas de mm para cm: 0",
+      "removidos": 0,
+      "restantes": 895
+    },
+    {
+      "etapa": "  Removidos por altura inválida (<100 ou >220cm): 128",
+      "removidos": "128",
+      "restantes": 767
+    },
+    {
+      "etapa": "  Removidos por peso inválido (<40 ou >250kg): 1",
+      "removidos": "1",
+      "restantes": 766
+    },
+    {
+      "etapa": "  Removidos por IMC fora da faixa (< 35 ou > 80): 9",
+      "removidos": "9",
+      "restantes": 757
+    },
+    {
+      "etapa": "  Removidos por idade inválida: 0",
+      "removidos": "0",
+      "restantes": 757
+    },
+    {
+      "etapa": "  PA invalidadas (limites clínicos ou diastólica >= sistólica): 3",
+      "removidos": 0,
+      "restantes": 757
+    },
+    {
+      "etapa": "  Glicemias invalidadas (fora de 20-600 mg/dL): 0",
+      "removidos": 0,
+      "restantes": 757
+    }
+  ],
+  "distribuicao_imc": {
+    "mean": 39.32,
+    "std": 4.49,
+    "min": 35.0,
+    "max": 79.78
+  },
+  "distribuicao_sexo": {
+    "F": 653,
+    "M": 104
+  },
+  "distribuicao_grau_obesidade": {
+    "Grau II": 517,
+    "Grau III": 215,
+    "Super Obesidade": 25
+  }
+}
