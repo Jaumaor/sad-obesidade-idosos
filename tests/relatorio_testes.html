@@ -1,0 +1,193 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Relatório de Testes - SENTINELA</title>
+        <style>
+            body { font-family: Inter, sans-serif; margin: 40px; background: #f8fafc; }
+            .header { background: #2c684a; color: white; padding: 20px; border-radius: 8px; margin-bottom: 24px; }
+            .summary { display: flex; gap: 24px; margin-bottom: 32px; }
+            .card { background: white; padding: 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex: 1; }
+            .pass { color: #16a34a; font-weight: bold; }
+            .fail { color: #dc2626; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+            th { background: #f1f5f9; font-weight: 600; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>SENTINELA - Relatório de Testes Técnicos</h1>
+            <p>Gerado em 02/06/2026 20:10</p>
+        </div>
+        
+        <div class="summary">
+            <div class="card">
+                <h2>Total de Testes</h2>
+                <p style="font-size: 2em; font-weight: bold;">24</p>
+            </div>
+            <div class="card">
+                <h2>Passaram</h2>
+                <p class="pass" style="font-size: 2em; font-weight: bold;">21</p>
+            </div>
+            <div class="card">
+                <h2>Falharam</h2>
+                <p class="fail" style="font-size: 2em; font-weight: bold;">3</p>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr><th>Teste</th><th>Resultado</th><th>Detalhes</th></tr>
+            </thead>
+            <tbody>
+    
+                <tr>
+                    <td>Materialized view mv_idosos_obesos_atual existe</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Registros na view: 856</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Encontrados 856 idosos com obesidade grau II+</td>
+                </tr>
+        
+                <tr>
+                    <td>Campos essenciais não nulos</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>0 registros com campos nulos</td>
+                </tr>
+        
+                <tr>
+                    <td>Idade plausível (60-110)</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Idade: 60 - 98</td>
+                </tr>
+        
+                <tr>
+                    <td>IMC plausível (30-70)</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>IMC: 35.0 - 62.1</td>
+                </tr>
+        
+                <tr>
+                    <td>Tabela risco_estratificado existe</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Scores em [0,100]</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Score: 0.0 - 99.0</td>
+                </tr>
+        
+                <tr>
+                    <td>Distribuição de risco não vazia</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Níveis: Critico(423), Baixo(413), Moderado(15), Alto(5)</td>
+                </tr>
+        
+                <tr>
+                    <td>Cálculo de risco recente (<30 dias)</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Último cálculo: 2026-05-19 (14 dias atrás)</td>
+                </tr>
+        
+                <tr>
+                    <td>Backend: /api/v1/kpis</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Status 200</td>
+                </tr>
+        
+                <tr>
+                    <td>KPIs contém campos obrigatórios</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Backend: /api/v1/pacientes</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Retornados 5 pacientes</td>
+                </tr>
+        
+                <tr>
+                    <td>Paciente tem campos essenciais</td>
+                    <td class="fail">❌ Fail</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Backend: /api/v1/mapa/calor</td>
+                    <td class="fail">❌ Fail</td>
+                    <td>HTTPConnectionPool(host='127.0.0.1', port=8000): Read timed out. (read timeout=10)</td>
+                </tr>
+        
+                <tr>
+                    <td>Frontend proxy: /api/v1/kpis</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Status 200</td>
+                </tr>
+        
+                <tr>
+                    <td>Redirecionamento para login sem autenticação</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Login com credenciais corretas</td>
+                    <td class="fail">❌ Fail</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Acesso ao dashboard após login</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Login com senha errada falha</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Geração de alertas</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Novos: 859</td>
+                </tr>
+        
+                <tr>
+                    <td>Alertas não lidos no banco</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>Encontrados 859</td>
+                </tr>
+        
+                <tr>
+                    <td>Marcar alertas como lidos</td>
+                    <td class="pass">✅ Pass</td>
+                    <td></td>
+                </tr>
+        
+                <tr>
+                    <td>Taxa de sucesso em carga (10 req)</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>10/10 bem-sucedidas</td>
+                </tr>
+        
+                <tr>
+                    <td>Tempo médio de resposta <2s</td>
+                    <td class="pass">✅ Pass</td>
+                    <td>0.11s</td>
+                </tr>
+        
+            </tbody>
+        </table>
+    </body>
+    </html>
+    
