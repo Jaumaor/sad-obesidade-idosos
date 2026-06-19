@@ -1,46 +1,48 @@
--- Obter detalhes completos de um paciente específico
+-- Obter detalhes completos de um paciente pelo co_seq_cidadao
 SELECT
-    p.id,
-    p.codigo_anonimo,
-    p.idade,
-    p.sexo,
-    p.data_nascimento,
-    p.em_acompanhamento,
-    p.data_cadastro,
-    p.data_ultima_visita,
-    CURRENT_DATE - p.data_ultima_visita AS dias_sem_visita,
-    
-    t.id AS territorio_id,
-    t.nome AS territorio,
-    
-    us.id AS unidade_saude_id,
-    us.nome AS unidade_saude,
-    us.endereco,
-    us.telefone,
-    
-    -- Último acompanhamento
-    (SELECT imc FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS imc_atual,
-    (SELECT peso_kg FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS peso_kg,
-    (SELECT altura_m FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS altura_m,
-    (SELECT grau_obesidade FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS grau_obesidade_atual,
-    (SELECT pressao_arterial_sistolica FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS pa_sistolica,
-    (SELECT pressao_arterial_diastolica FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS pa_diastolica,
-    (SELECT glicemia_mg_dl FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS glicemia,
-    
-    -- Contagem de comorbidades
-    (SELECT COUNT(*) FROM comorbidades WHERE paciente_id = p.id AND ativo = TRUE) AS total_comorbidades,
-    
-    -- Risco atual
-    (SELECT nivel_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) AS nivel_risco,
-    (SELECT score_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) AS score_risco,
-    (SELECT CURRENT_DATE - data_calculo::date FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) AS dias_desde_calculo_risco,
-    
-    -- Alertas não resolvidos
-    (SELECT COUNT(*) FROM alertas WHERE paciente_id = p.id AND resolvido = FALSE) AS total_alertas_pendentes,
-    
-    p.criado_em,
-    p.atualizado_em
-FROM pacientes p
-LEFT JOIN territorios t ON p.territorio_id = t.id
-LEFT JOIN unidades_saude us ON p.unidade_saude_id = us.id
-WHERE p.id = %(paciente_id)s;
+    mv.co_seq_cidadao AS id,
+    mv.codigo_anonimo,
+    mv.idade,
+    mv.sexo,
+    mv.em_acompanhamento,
+    mv.data_ultima_visita,
+    mv.dias_sem_visita,
+
+    mv.bairro AS territorio,
+
+    mv.imc_atual,
+    mv.peso_kg,
+    mv.altura_cm / 100.0 AS altura_m,
+    mv.grau_obesidade AS grau_obesidade_atual,
+    mv.pa_sistolica,
+    mv.pa_diastolica,
+    mv.glicemia,
+
+    mv.total_comorbidades,
+    mv.tem_diabetes,
+    mv.tem_hipertensao,
+    mv.tem_doenca_cardiaca,
+    mv.tem_dislipidemia,
+    mv.tem_irc,
+    mv.tem_depressao,
+    mv.tem_artrose,
+    mv.cids,
+
+    -- Risco atual (último cálculo)
+    r.nivel_risco,
+    r.score_risco,
+    CURRENT_DATE - r.data_calculo AS dias_desde_calculo_risco,
+    r.fatores_risco,
+    r.recomendacoes,
+
+    0 AS total_alertas_pendentes
+
+FROM mv_idosos_obesos_atual mv
+LEFT JOIN LATERAL (
+    SELECT nivel_risco, score_risco, data_calculo, fatores_risco, recomendacoes
+    FROM risco_estratificado
+    WHERE co_seq_cidadao = mv.co_seq_cidadao
+    ORDER BY data_calculo DESC
+    LIMIT 1
+) r ON TRUE
+WHERE mv.co_seq_cidadao = %(paciente_id)s;

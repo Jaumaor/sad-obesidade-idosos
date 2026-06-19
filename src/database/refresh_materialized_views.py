@@ -14,8 +14,16 @@ def refresh_materialized_views():
     db.connect_psycopg2()
 
     try:
+        # MV principal: dados consolidados do e-SUS
         db.execute_query(
-            "REFRESH MATERIALIZED VIEW mv_estatisticas_territorio;",
+            "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_idosos_obesos_atual;",
+            fetch=False,
+        )
+        print("[OK] Materialized view atualizada: mv_idosos_obesos_atual")
+
+        # MV secundária: estatísticas por território
+        db.execute_query(
+            "REFRESH MATERIALIZED VIEW CONCURRENTLY mv_estatisticas_territorio;",
             fetch=False,
         )
         print("[OK] Materialized view atualizada: mv_estatisticas_territorio")

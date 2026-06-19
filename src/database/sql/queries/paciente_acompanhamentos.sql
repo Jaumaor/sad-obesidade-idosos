@@ -1,34 +1,32 @@
--- Histórico de acompanhamentos (visitas/consultas) de um paciente
+-- Histórico de medições de um paciente (dados reais do e-SUS)
 SELECT
-    a.id,
-    a.data_registro,
-    a.tipo_atendimento,
-    a.peso_kg,
-    a.altura_m,
-    a.imc,
-    a.circunferencia_abdominal_cm,
-    a.grau_obesidade,
-    a.pressao_arterial_sistolica,
-    a.pressao_arterial_diastolica,
-    a.glicemia_mg_dl,
-    a.observacoes,
-    a.criado_em,
-    -- Variação desde a medição anterior
-    (
-        SELECT a1.imc - a2.imc
-        FROM acompanhamentos a1, acompanhamentos a2
-        WHERE a1.paciente_id = %(paciente_id)s
-          AND a2.paciente_id = %(paciente_id)s
-          AND a1.id = a.id
-          AND a2.data_registro = (
-              SELECT MAX(data_registro)
-              FROM acompanhamentos
-              WHERE paciente_id = %(paciente_id)s
-                AND data_registro < a.data_registro
-          )
-        LIMIT 1
-    ) AS variacao_imc
-FROM acompanhamentos a
-WHERE a.paciente_id = %(paciente_id)s
-ORDER BY a.data_registro DESC
+    m.co_seq_medicao AS id,
+    m.dt_medicao::date AS data_registro,
+    'Atendimento' AS tipo_atendimento,
+    CAST(m.nu_medicao_peso AS NUMERIC) AS peso_kg,
+    CAST(m.nu_medicao_altura AS NUMERIC) / 100.0 AS altura_m,
+    CAST(m.nu_medicao_imc AS NUMERIC) AS imc,
+    NULL::numeric AS circunferencia_abdominal_cm,
+    CASE
+        WHEN CAST(m.nu_medicao_imc AS NUMERIC) >= 50 THEN 'Super Obesidade'
+        WHEN CAST(m.nu_medicao_imc AS NUMERIC) >= 40 THEN 'Grau III'
+        WHEN CAST(m.nu_medicao_imc AS NUMERIC) >= 35 THEN 'Grau II'
+        ELSE NULL
+    END AS grau_obesidade,
+    CAST(NULLIF(SPLIT_PART(m.nu_medicao_pressao_arterial, '/', 1), '') AS NUMERIC) AS pressao_arterial_sistolica,
+    CAST(NULLIF(SPLIT_PART(m.nu_medicao_pressao_arterial, '/', 2), '') AS NUMERIC) AS pressao_arterial_diastolica,
+    CAST(m.nu_medicao_glicemia AS NUMERIC) AS glicemia_mg_dl,
+    NULL AS observacoes,
+    m.dt_medicao AS criado_em,
+    -- Variação IMC em relação à medição anterior
+    CAST(m.nu_medicao_imc AS NUMERIC) - LAG(CAST(m.nu_medicao_imc AS NUMERIC))
+        OVER (ORDER BY m.dt_medicao ASC) AS variacao_imc
+FROM tb_medicao m
+JOIN tb_atend_prof ap ON m.co_atend_prof = ap.co_seq_atend_prof
+JOIN tb_atend a ON ap.co_seq_atend_prof = a.co_atend_prof
+JOIN tb_prontuario pr ON a.co_prontuario = pr.co_seq_prontuario
+WHERE pr.co_cidadao = %(paciente_id)s
+  AND m.nu_medicao_peso IS NOT NULL
+  AND m.nu_medicao_altura IS NOT NULL
+ORDER BY m.dt_medicao DESC
 LIMIT %(limite)s;

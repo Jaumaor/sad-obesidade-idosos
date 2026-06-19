@@ -1,24 +1,23 @@
+-- Estatísticas por bairro/território a partir da MV principal
+-- Dependência: mv_idosos_obesos_atual deve existir
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_estatisticas_territorio AS
 SELECT
-    t.id AS territorio_id,
-    t.nome AS territorio,
-    COUNT(DISTINCT p.id) AS total_pacientes,
-    COUNT(DISTINCT p.id) FILTER (WHERE p.em_acompanhamento = TRUE) AS pacientes_ativos,
-    COUNT(DISTINCT p.id) FILTER (
-        WHERE (CURRENT_DATE - p.data_ultima_visita) > 60
-    ) AS pacientes_faltosos,
-    AVG(r.score_risco) AS media_score_risco,
+    mv.bairro AS territorio,
+    COUNT(*) AS total_pacientes,
+    COUNT(*) FILTER (WHERE mv.em_acompanhamento = TRUE) AS pacientes_ativos,
+    COUNT(*) FILTER (WHERE mv.dias_sem_visita > 60) AS pacientes_faltosos,
+    COALESCE(AVG(r.score_risco), 0) AS media_score_risco,
     CURRENT_TIMESTAMP AS atualizado_em
-FROM territorios t
-LEFT JOIN pacientes p ON t.id = p.territorio_id
+FROM mv_idosos_obesos_atual mv
 LEFT JOIN LATERAL (
     SELECT score_risco
     FROM risco_estratificado
-    WHERE paciente_id = p.id
+    WHERE co_seq_cidadao = mv.co_seq_cidadao
     ORDER BY data_calculo DESC
     LIMIT 1
 ) r ON TRUE
-GROUP BY t.id, t.nome;
+WHERE mv.bairro IS NOT NULL
+GROUP BY mv.bairro;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_estatisticas_territorio_id
-    ON mv_estatisticas_territorio (territorio_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_estatisticas_territorio_bairro
+    ON mv_estatisticas_territorio (territorio);

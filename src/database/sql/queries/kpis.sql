@@ -1,10 +1,6 @@
 SELECT
-    (SELECT COUNT(*) FROM pacientes) AS total_pacientes,
-    (SELECT COUNT(*) FROM pacientes WHERE em_acompanhamento = TRUE) AS pacientes_ativos,
-    (
-        SELECT COUNT(*)
-        FROM pacientes
-        WHERE em_acompanhamento = TRUE
-          AND (CURRENT_DATE - data_ultima_visita) > %(dias_abandono)s
-    ) AS pacientes_faltosos,
-    (SELECT COUNT(*) FROM territorios) AS total_territorios;
+    COUNT(*) AS total_pacientes,
+    COUNT(*) FILTER (WHERE em_acompanhamento = TRUE) AS pacientes_ativos,
+    COUNT(*) FILTER (WHERE dias_sem_visita > %(dias_abandono)s) AS pacientes_faltosos,
+    COUNT(DISTINCT bairro) AS total_territorios
+FROM mv_idosos_obesos_atual;

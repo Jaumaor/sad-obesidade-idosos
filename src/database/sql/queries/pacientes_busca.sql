@@ -1,36 +1,37 @@
--- Busca avançada de pacientes com filtros
+-- Busca avançada de pacientes com filtros (dados do e-SUS via MV)
 SELECT
-    p.id,
-    p.codigo_anonimo,
-    p.idade,
-    p.sexo,
-    p.em_acompanhamento,
-    p.data_ultima_visita,
-    CURRENT_DATE - p.data_ultima_visita AS dias_sem_visita,
-    
-    t.nome AS territorio,
-    us.nome AS unidade_saude,
-    
-    (SELECT imc FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS imc_atual,
-    (SELECT grau_obesidade FROM acompanhamentos WHERE paciente_id = p.id ORDER BY data_registro DESC LIMIT 1) AS grau_obesidade,
-    (SELECT COUNT(*) FROM comorbidades WHERE paciente_id = p.id AND ativo = TRUE) AS total_comorbidades,
-    (SELECT nivel_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) AS nivel_risco,
-    (SELECT score_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) AS score_risco
-FROM pacientes p
-LEFT JOIN territorios t ON p.territorio_id = t.id
-LEFT JOIN unidades_saude us ON p.unidade_saude_id = us.id
-WHERE 
-    (%(territorio_ids)s::INTEGER[] IS NULL OR t.id = ANY(%(territorio_ids)s::INTEGER[]))
-    AND (%(unidade_saude_ids)s::INTEGER[] IS NULL OR us.id = ANY(%(unidade_saude_ids)s::INTEGER[]))
-    AND (%(idade_minima)s IS NULL OR p.idade >= %(idade_minima)s)
-    AND (%(idade_maxima)s IS NULL OR p.idade <= %(idade_maxima)s)
-    AND (%(em_acompanhamento)s IS NULL OR p.em_acompanhamento = %(em_acompanhamento)s)
-ORDER BY 
-    CASE 
-        WHEN (SELECT nivel_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) = 'Crítico' THEN 1
-        WHEN (SELECT nivel_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) = 'Alto' THEN 2
-        WHEN (SELECT nivel_risco FROM risco_estratificado WHERE paciente_id = p.id ORDER BY data_calculo DESC LIMIT 1) = 'Moderado' THEN 3
+    mv.co_seq_cidadao AS id,
+    mv.codigo_anonimo,
+    mv.idade,
+    mv.sexo,
+    mv.em_acompanhamento,
+    mv.data_ultima_visita,
+    mv.dias_sem_visita,
+    mv.bairro AS territorio,
+    NULL AS unidade_saude,
+    mv.imc_atual,
+    mv.grau_obesidade,
+    mv.total_comorbidades,
+    r.nivel_risco,
+    r.score_risco
+FROM mv_idosos_obesos_atual mv
+LEFT JOIN LATERAL (
+    SELECT nivel_risco, score_risco
+    FROM risco_estratificado
+    WHERE co_seq_cidadao = mv.co_seq_cidadao
+    ORDER BY data_calculo DESC
+    LIMIT 1
+) r ON TRUE
+WHERE
+    (%(idade_minima)s IS NULL OR mv.idade >= %(idade_minima)s)
+    AND (%(idade_maxima)s IS NULL OR mv.idade <= %(idade_maxima)s)
+    AND (%(em_acompanhamento)s IS NULL OR mv.em_acompanhamento = %(em_acompanhamento)s)
+ORDER BY
+    CASE
+        WHEN r.nivel_risco = 'Critico' THEN 1
+        WHEN r.nivel_risco = 'Alto' THEN 2
+        WHEN r.nivel_risco = 'Moderado' THEN 3
         ELSE 4
     END ASC,
-    CURRENT_DATE - p.data_ultima_visita DESC
+    mv.dias_sem_visita DESC
 LIMIT %(limite)s;
