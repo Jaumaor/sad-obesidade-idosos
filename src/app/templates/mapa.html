@@ -3,167 +3,169 @@
 {% block title %}Mapa de Risco | SAD Obesidade{% endblock %}
 {% block page_icon %}map{% endblock %}
 {% block page_title %}Mapa de Risco Territorial{% endblock %}
-{% block content_padding %}p-0{% endblock %}
 
 {% block extra_styles %}
-.heatmap-overlay {
-    background:
-      radial-gradient(circle at 40% 50%, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0.1) 40%, transparent 70%),
-      radial-gradient(circle at 60% 45%, rgba(245, 158, 11, 0.3) 0%, transparent 50%);
-}
-.map-grid {
-    background-image:
-      linear-gradient(rgba(44, 104, 74, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(44, 104, 74, 0.06) 1px, transparent 1px);
-    background-size: 40px 40px;
-}
+<style>
+#mapa-fullpage { height: calc(100vh - 12rem); min-height: 500px; }
+.leaflet-popup-content { font-family: 'Inter', sans-serif; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="flex h-[calc(100vh-5rem)]">
-    <!-- Filter Panel -->
-    <aside class="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-6 overflow-y-auto">
-        <div class="space-y-8">
+<div class="grid grid-cols-12 gap-6">
+    <!-- Sidebar de controles -->
+    <div class="col-span-12 lg:col-span-3 space-y-4">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-5">
+            <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">tune</span>
+                Controles do Mapa
+            </h3>
+
             <div>
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Configurações do Mapa</h3>
-                <label class="block text-xs font-bold text-slate-700 mb-2">Unidade Básica de Saúde</label>
-                <div class="relative">
-                    <select class="w-full bg-slate-50 border-none text-sm font-medium rounded-lg py-2.5 px-4 focus:ring-2 focus:ring-primary appearance-none">
-                        <option>Todas as Unidades</option>
-                        <option>UBS Brasil</option>
-                        <option>UBS Patagônia</option>
-                        <option>UBS Vila Serrana</option>
-                    </select>
-                    <span class="material-symbols-outlined absolute right-3 top-2.5 text-slate-400 pointer-events-none">expand_more</span>
-                </div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Raio do heatmap</label>
+                <input type="range" id="heat-radius" min="10" max="50" value="25"
+                       class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"/>
+                <div class="flex justify-between text-[9px] text-slate-400 mt-1"><span>10px</span><span>50px</span></div>
             </div>
 
             <div>
-                <div class="flex justify-between items-center mb-3">
-                    <label class="text-xs font-bold text-slate-700 uppercase">Raio (Buffer)</label>
-                    <span class="text-xs font-black text-primary bg-primary-container px-2 py-0.5 rounded">2.5 km</span>
-                </div>
-                <input type="range" min="0" max="10" step="0.5" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"/>
-                <div class="flex justify-between text-[10px] font-medium text-slate-400 mt-2">
-                    <span>0km</span><span>5km</span><span>10km</span>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">Blur</label>
+                <input type="range" id="heat-blur" min="5" max="40" value="20"
+                       class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary"/>
+            </div>
+
+            <!-- Legenda de gradiente -->
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <p class="text-[10px] font-black uppercase text-slate-500 mb-2">Gradiente de Risco</p>
+                <div class="h-3 w-full bg-gradient-to-r from-emerald-400 via-amber-400 via-orange-500 to-red-800 rounded-full mb-2"></div>
+                <div class="flex justify-between text-[9px] font-bold text-slate-400">
+                    <span>Baixo</span><span>Moderado</span><span>Crítico</span>
                 </div>
             </div>
 
-            <div>
-                <label class="text-xs font-bold text-slate-700 uppercase block mb-4">Filtragem de Risco</label>
-                <div class="space-y-3">
-                    <label class="flex items-center group cursor-pointer">
-                        <input type="checkbox" checked class="w-4 h-4 rounded-sm border-slate-300 text-red-500 focus:ring-red-500"/>
-                        <span class="ml-3 text-sm font-medium text-slate-600">Risco Crítico</span>
-                        <span class="ml-auto w-2 h-2 rounded-full bg-red-500"></span>
-                    </label>
-                    <label class="flex items-center group cursor-pointer">
-                        <input type="checkbox" checked class="w-4 h-4 rounded-sm border-slate-300 text-amber-500 focus:ring-amber-500"/>
-                        <span class="ml-3 text-sm font-medium text-slate-600">Risco Médio</span>
-                        <span class="ml-auto w-2 h-2 rounded-full bg-amber-500"></span>
-                    </label>
-                    <label class="flex items-center group cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 rounded-sm border-slate-300 text-primary focus:ring-primary"/>
-                        <span class="ml-3 text-sm font-medium text-slate-600">Baixo Risco</span>
-                        <span class="ml-auto w-2 h-2 rounded-full bg-primary"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                <p class="text-[10px] font-black uppercase tracking-tighter text-slate-500 mb-3">Densidade Populacional</p>
-                <div class="h-2 w-full bg-gradient-to-r from-emerald-100 via-amber-200 to-red-500 rounded-full mb-2"></div>
-                <div class="flex justify-between text-[10px] font-bold text-slate-400">
-                    <span>BAIXA</span><span>ALTA</span>
-                </div>
-            </div>
-
-            <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
-                <p class="text-[11px] text-slate-500 italic leading-relaxed">
-                    O mapa apresenta o gradiente de densidade para idosos (60+) com obesidade grau II e III, agregados por microárea para preservação de privacidade (LGPD).
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100 border-dashed">
+                <p class="text-[10px] text-slate-500 italic leading-relaxed">
+                    Mapa de calor com coordenadas reais de visitas domiciliares (PostGIS).
+                    Pontos agregados por bairro para preservação de privacidade (LGPD).
                 </p>
             </div>
         </div>
-    </aside>
 
-    <!-- Map Area -->
-    <div class="flex-1 relative bg-slate-200 map-grid overflow-hidden">
-        <div class="absolute inset-0 heatmap-overlay"></div>
-
-        <!-- Landmarks -->
-        <div class="absolute top-[40%] left-[35%] text-center">
-            <span class="material-symbols-outlined text-primary text-3xl opacity-60">health_and_safety</span>
-            <span class="block text-[10px] font-bold text-slate-700 -mt-1">UBS Brasil</span>
+        <!-- Stats -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5" id="mapa-stats">
+            <p class="text-xs text-slate-400 font-bold">Carregando estatísticas...</p>
         </div>
-        <div class="absolute top-[55%] left-[58%] text-center">
-            <span class="material-symbols-outlined text-primary text-3xl opacity-60">health_and_safety</span>
-            <span class="block text-[10px] font-bold text-slate-700 -mt-1">UBS Patagônia</span>
-        </div>
+    </div>
 
-        <!-- Streets simulation -->
-        <svg class="absolute inset-0 w-full h-full opacity-20 pointer-events-none" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-            <path d="M0,200 L1000,200 M0,400 L1000,400 M0,600 L1000,600 M0,800 L1000,800" stroke="#94a3b8" stroke-width="2"/>
-            <path d="M200,0 L200,1000 M400,0 L400,1000 M600,0 L600,1000 M800,0 L800,1000" stroke="#94a3b8" stroke-width="2"/>
-        </svg>
-
-        <!-- Legend -->
-        <div class="absolute top-6 right-6 bg-white/90 backdrop-blur shadow-xl rounded-lg p-3 border border-slate-200 pointer-events-none">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                <span class="text-[11px] font-bold text-slate-800">Alta Densidade (Crítico)</span>
-            </div>
-            <div class="flex items-center gap-2 mb-2">
-                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
-                <span class="text-[11px] font-bold text-slate-800">Médio Risco Territorial</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="w-3 h-3 rounded-full bg-primary/40"></div>
-                <span class="text-[11px] font-bold text-slate-800">Área de Cobertura UBS</span>
-            </div>
-        </div>
-
-        <!-- Stats Panel -->
-        <div class="absolute bottom-6 right-6 w-96 bg-white shadow-2xl rounded-xl overflow-hidden border-l-4 border-primary">
-            <div class="p-4 bg-primary/5 border-b border-slate-100 flex justify-between items-center">
-                <h4 class="text-sm font-black text-primary tracking-tight">Estatísticas da Zona Selecionada</h4>
-                <span class="text-[10px] font-bold text-primary bg-white px-2 py-0.5 rounded border border-primary/20">SETOR 04-A</span>
-            </div>
-            <div class="p-5 grid grid-cols-2 gap-4">
-                <div class="col-span-2 flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-100">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total de Pacientes</p>
-                        <p class="text-2xl font-black tracking-tighter">1.248</p>
-                    </div>
-                    <span class="material-symbols-outlined text-slate-400 text-3xl">groups</span>
-                </div>
-                <div class="bg-red-50 p-3 rounded-lg border border-red-100">
-                    <p class="text-[9px] font-bold text-red-700 uppercase">Obesidade Sarcopênica</p>
-                    <p class="text-xl font-black text-red-600">342</p>
-                    <div class="mt-1 h-1 w-full bg-red-200 rounded-full overflow-hidden">
-                        <div class="h-full bg-red-600 w-[72%]"></div>
-                    </div>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <p class="text-[9px] font-bold text-slate-500 uppercase">Média IMC Setor</p>
-                    <p class="text-xl font-black text-slate-800">31.4 <span class="text-xs font-medium text-slate-400">kg/m²</span></p>
-                    <div class="flex items-center gap-1 mt-1 text-[10px] font-bold text-red-500">
-                        <span class="material-symbols-outlined text-[12px]">trending_up</span>+2.1%
-                    </div>
-                </div>
-            </div>
-            <div class="px-5 pb-5">
-                <a href="/pacientes" class="block text-center w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded hover:bg-black transition-colors">
-                    Ver Listagem Completa
-                </a>
-            </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="absolute left-6 bottom-6 flex flex-col gap-2">
-            <button class="w-10 h-10 bg-white shadow-lg rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary"><span class="material-symbols-outlined">add</span></button>
-            <button class="w-10 h-10 bg-white shadow-lg rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary"><span class="material-symbols-outlined">remove</span></button>
-            <button class="w-10 h-10 bg-white shadow-lg rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:text-primary mt-2"><span class="material-symbols-outlined">my_location</span></button>
+    <!-- Mapa Leaflet -->
+    <div class="col-span-12 lg:col-span-9">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div id="mapa-fullpage" class="z-0"></div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const VDC = [-14.866, -40.844];
+    const map = L.map("mapa-fullpage", { zoomControl: true }).setView(VDC, 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        maxZoom: 18,
+    }).addTo(map);
+
+    try {
+        const res = await fetch("/api/v1/mapa/calor");
+        if (!res.ok) throw new Error("Erro API");
+        const pontos = await res.json();
+
+        if (!pontos.length) {
+            document.getElementById("mapa-stats").innerHTML =
+                '<p class="text-sm text-slate-400">Nenhum ponto disponível</p>';
+            return;
+        }
+
+        const maxInt = Math.max(...pontos.map(p => p.intensidade), 1);
+        const heatData = pontos.map(p => [p.lat, p.lon, p.intensidade / maxInt]);
+
+        const heat = L.heatLayer(heatData, {
+            radius: 25, blur: 20, maxZoom: 16, max: 1.0,
+            gradient: { 0.0: "#22c55e", 0.3: "#eab308", 0.6: "#f97316", 0.8: "#ef4444", 1.0: "#7f1d1d" },
+        }).addTo(map);
+
+        // Controles de raio e blur
+        document.getElementById("heat-radius").addEventListener("input", e => {
+            heat.setOptions({ radius: parseInt(e.target.value) }); heat.redraw();
+        });
+        document.getElementById("heat-blur").addEventListener("input", e => {
+            heat.setOptions({ blur: parseInt(e.target.value) }); heat.redraw();
+        });
+
+        // Fit bounds
+        if (heatData.length > 1) {
+            map.fitBounds(L.latLngBounds(heatData.map(d => [d[0], d[1]])), { padding: [30, 30] });
+        }
+
+        // Markers por bairro
+        const bairros = {};
+        pontos.forEach(p => {
+            const b = p.bairro || "Sem bairro";
+            if (!bairros[b]) bairros[b] = { lat: 0, lon: 0, n: 0, critico: 0, alto: 0 };
+            bairros[b].lat += p.lat; bairros[b].lon += p.lon; bairros[b].n++;
+            if (p.nivel_risco === "Critico") bairros[b].critico++;
+            if (p.nivel_risco === "Alto") bairros[b].alto++;
+        });
+
+        let totalCritico = 0, totalAlto = 0;
+        Object.entries(bairros).forEach(([nome, d]) => {
+            const lat = d.lat / d.n, lon = d.lon / d.n;
+            const pctCrit = Math.round((d.critico / d.n) * 100);
+            const color = pctCrit > 60 ? "#dc2626" : pctCrit > 30 ? "#f59e0b" : "#22c55e";
+            totalCritico += d.critico; totalAlto += d.alto;
+
+            L.circleMarker([lat, lon], {
+                radius: Math.min(6 + d.n * 0.5, 18),
+                fillColor: color, color: "#fff", weight: 2, fillOpacity: 0.85,
+            }).bindPopup(
+                `<div style="min-width:150px">
+                    <strong>${nome}</strong><br>
+                    <span style="font-size:12px">
+                        Pacientes: <b>${d.n}</b><br>
+                        Críticos: <b>${d.critico}</b> (${pctCrit}%)<br>
+                        Alto: <b>${d.alto}</b>
+                    </span>
+                </div>`
+            ).addTo(map);
+        });
+
+        // Stats panel
+        document.getElementById("mapa-stats").innerHTML = `
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Geolocalizados</span>
+                    <span class="text-lg font-black text-slate-800">${pontos.length}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Bairros</span>
+                    <span class="text-lg font-black text-slate-800">${Object.keys(bairros).length}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-red-500 uppercase">Críticos</span>
+                    <span class="text-lg font-black text-red-600">${totalCritico}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-500 uppercase">Alto Risco</span>
+                    <span class="text-lg font-black text-amber-600">${totalAlto}</span>
+                </div>
+            </div>`;
+    } catch (err) {
+        console.error("Erro mapa:", err);
+        document.getElementById("mapa-stats").innerHTML =
+            '<p class="text-sm text-red-500">Erro ao carregar dados do mapa</p>';
+    }
+});
+</script>
 {% endblock %}

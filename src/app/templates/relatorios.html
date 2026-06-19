@@ -11,107 +11,122 @@
         <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Módulo de Análise</p>
         <h2 class="text-3xl font-black text-slate-900 tracking-tight">Relatórios e Indicadores</h2>
     </div>
-    <div class="flex items-center gap-3 bg-white p-2 border border-slate-200 shadow-sm rounded-xl">
-        <span class="material-symbols-outlined text-slate-400 px-2">calendar_today</span>
-        <div class="flex flex-col">
-            <span class="text-[10px] uppercase font-bold text-slate-500">Período</span>
-            <select class="border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900">
-                <option>Últimos 6 Meses</option>
-                <option>Último Trimestre</option>
-                <option>Ano Atual</option>
-            </select>
-        </div>
+</div>
+
+<!-- KPIs resumo -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-[10px] font-bold text-slate-400 uppercase">Total Monitorados</p>
+        <p class="text-3xl font-black text-slate-800">{{ kpis.total_pacientes|default(0) }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-[10px] font-bold text-slate-400 uppercase">Pacientes Ativos</p>
+        <p class="text-3xl font-black text-primary">{{ kpis.pacientes_ativos|default(0) }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-[10px] font-bold text-slate-400 uppercase">Faltosos</p>
+        <p class="text-3xl font-black text-amber-600">{{ kpis.pacientes_faltosos|default(0) }}</p>
+    </div>
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <p class="text-[10px] font-bold text-slate-400 uppercase">Territórios</p>
+        <p class="text-3xl font-black text-slate-800">{{ territorios|length }}</p>
     </div>
 </div>
 
 <!-- Bento Grid -->
 <div class="grid grid-cols-12 gap-6">
-    <!-- Comparative Chart -->
-    <div class="col-span-12 lg:col-span-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div class="flex justify-between items-start mb-8">
+
+    <!-- Distribuição de Risco -->
+    <div class="col-span-12 lg:col-span-4 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h3 class="text-sm font-black text-slate-900 mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-lg">pie_chart</span>
+            Distribuição de Risco
+        </h3>
+        <div class="space-y-3">
+            {% set colors = {'Critico': 'bg-red-500', 'Alto': 'bg-amber-500', 'Moderado': 'bg-blue-500', 'Baixo': 'bg-emerald-500'} %}
+            {% set total_risco = risco_dist|sum(attribute='Quantidade') if risco_dist else 1 %}
+            {% for r in risco_dist %}
             <div>
-                <h3 class="text-lg font-black text-slate-900 leading-tight">Prevalência por Unidade (UBS)</h3>
-                <p class="text-xs text-slate-500 font-medium">Comparativo de Obesidade e Risco Crítico</p>
-            </div>
-            <div class="flex gap-4">
-                <div class="flex items-center gap-2"><span class="w-3 h-3 bg-primary rounded-full"></span><span class="text-[10px] font-bold uppercase text-slate-500">Obesidade</span></div>
-                <div class="flex items-center gap-2"><span class="w-3 h-3 bg-red-500 rounded-full"></span><span class="text-[10px] font-bold uppercase text-slate-500">Crítico</span></div>
-            </div>
-        </div>
-        <div class="h-64 flex items-end gap-12 px-4">
-            <div class="flex-1 flex flex-col items-center">
-                <div class="w-full flex justify-center gap-1 items-end h-48">
-                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:75%"></div>
-                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:40%"></div>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full {{ colors.get(r.Risco, 'bg-slate-400') }}"></span>
+                        {{ r.Risco }}
+                    </span>
+                    <span class="text-sm font-black text-slate-800">{{ r.Quantidade }}</span>
                 </div>
-                <span class="mt-4 text-[11px] font-black text-slate-700">UBS Brasil</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center">
-                <div class="w-full flex justify-center gap-1 items-end h-48">
-                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:60%"></div>
-                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:55%"></div>
+                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="{{ colors.get(r.Risco, 'bg-slate-400') }} h-full rounded-full transition-all"
+                         style="width: {{ (r.Quantidade / total_risco * 100)|round|int }}%"></div>
                 </div>
-                <span class="mt-4 text-[11px] font-black text-slate-700">Patagônia</span>
             </div>
-            <div class="flex-1 flex flex-col items-center">
-                <div class="w-full flex justify-center gap-1 items-end h-48">
-                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:85%"></div>
-                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:30%"></div>
-                </div>
-                <span class="mt-4 text-[11px] font-black text-slate-700">Vila Serrana</span>
-            </div>
-            <div class="flex-1 flex flex-col items-center">
-                <div class="w-full flex justify-center gap-1 items-end h-48">
-                    <div class="w-8 bg-primary/30 hover:bg-primary transition-all rounded-t" style="height:45%"></div>
-                    <div class="w-8 bg-red-300 hover:bg-red-500 transition-all rounded-t" style="height:20%"></div>
-                </div>
-                <span class="mt-4 text-[11px] font-black text-slate-700">Centro</span>
-            </div>
+            {% endfor %}
         </div>
     </div>
 
-    <!-- Insights -->
-    <div class="col-span-12 lg:col-span-4">
-        <div class="bg-primary text-white p-6 rounded-xl shadow-lg relative overflow-hidden h-full">
-            <div class="relative z-10">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="material-symbols-outlined text-white/80">auto_awesome</span>
-                    <h3 class="text-sm font-black uppercase tracking-widest">Insights do Sistema</h3>
-                </div>
-                <div class="space-y-4">
-                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                        <p class="text-sm leading-relaxed">Aumento de <span class="font-bold text-red-200">12% no risco crítico</span> na Zona Oeste este mês.</p>
-                    </div>
-                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                        <p class="text-sm leading-relaxed">Aumento de visitas domiciliares <span class="font-bold text-emerald-200">reduziu o risco em 15%</span> na UBS Patagônia.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+    <!-- Tabela de Territórios -->
+    <div class="col-span-12 lg:col-span-8 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-6 pb-0">
+            <h3 class="text-sm font-black text-slate-900 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">location_city</span>
+                Indicadores por Território ({{ territorios|length }} bairros)
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100">
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-500">Bairro</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-500 text-center">Total</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-500 text-center">Ativos</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-500 text-center">Faltosos</th>
+                        <th class="px-6 py-3 text-[10px] font-black uppercase text-slate-500 text-center">Score Médio</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    {% set max_score = (territorios|map(attribute='media_score_risco')|max) if territorios else 1 %}
+                    {% for t in territorios %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-3 font-bold text-slate-800">{{ t.territorio }}</td>
+                        <td class="px-6 py-3 text-center text-slate-600">{{ t.total_pacientes }}</td>
+                        <td class="px-6 py-3 text-center text-primary font-bold">{{ t.pacientes_ativos }}</td>
+                        <td class="px-6 py-3 text-center
+                            {% if t.pacientes_faltosos > 10 %}text-red-600 font-bold{% else %}text-slate-600{% endif %}">
+                            {{ t.pacientes_faltosos }}
+                        </td>
+                        <td class="px-6 py-3">
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full
+                                        {% if t.media_score_risco >= 70 %}bg-red-500
+                                        {% elif t.media_score_risco >= 50 %}bg-amber-500
+                                        {% else %}bg-emerald-500{% endif %}"
+                                        style="width: {{ (t.media_score_risco / max_score * 100)|round|int }}%"></div>
+                                </div>
+                                <span class="text-xs font-black
+                                    {% if t.media_score_risco >= 70 %}text-red-600
+                                    {% elif t.media_score_risco >= 50 %}text-amber-600
+                                    {% else %}text-slate-700{% endif %}">{{ t.media_score_risco }}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Impact Chart -->
-    <div class="col-span-12 lg:col-span-8 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-                <h3 class="text-lg font-black text-slate-900 leading-tight">Impacto das Visitas Domiciliares</h3>
-                <p class="text-xs text-slate-500 font-medium">Correlação: Frequência de visitas vs. Score de Risco</p>
-            </div>
-            <span class="text-[10px] font-bold text-slate-500 uppercase bg-slate-50 p-2 rounded-lg">Média visitas: <span class="text-primary">+22%</span></span>
+    <!-- Mapa de Calor mini -->
+    <div class="col-span-12 bg-white p-6 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">map</span>
+                Mapa de Calor: Concentração de Risco
+            </h3>
+            <a href="/mapa" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                Ver mapa completo <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
         </div>
-        <div class="relative h-64 w-full px-2">
-            <svg class="w-full h-full" viewBox="0 0 800 200" preserveAspectRatio="none">
-                <line x1="0" y1="50" x2="800" y2="50" stroke="#f1f5f9" stroke-width="1"/>
-                <line x1="0" y1="100" x2="800" y2="100" stroke="#f1f5f9" stroke-width="1"/>
-                <line x1="0" y1="150" x2="800" y2="150" stroke="#f1f5f9" stroke-width="1"/>
-                <path d="M0,40 Q160,60 320,100 T640,140 T800,160" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="8 4"/>
-                <path d="M0,180 Q160,160 320,120 T640,80 T800,40" fill="none" stroke="#2c684a" stroke-width="4"/>
-            </svg>
-            <div class="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase">
-                <span>Mês 1</span><span>Mês 2</span><span>Mês 3</span><span>Mês 4</span><span>Mês 5</span><span>Mês 6</span>
-            </div>
-        </div>
+        <div id="relatorio-heatmap" class="w-full h-72 rounded-lg overflow-hidden z-0"></div>
     </div>
 
     <!-- Export -->
@@ -122,53 +137,83 @@
             </div>
             <div>
                 <h3 class="text-sm font-black text-slate-900 uppercase">Exportação de Dados</h3>
-                <p class="text-[10px] text-slate-500">PDF / CSV prontos para apresentação</p>
+                <p class="text-[10px] text-slate-500">CSV para análise externa</p>
             </div>
         </div>
         <div class="space-y-3 mt-auto">
-            <button class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg group">
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-red-500">picture_as_pdf</span>
-                    <span class="text-sm font-bold text-slate-700">Exportar PDF</span>
-                </div>
-                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary">chevron_right</span>
-            </button>
-            <button class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg group">
+            <a href="/api/v1/pacientes?limite=500" target="_blank"
+               class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg group">
                 <div class="flex items-center gap-3">
                     <span class="material-symbols-outlined text-primary">table_view</span>
-                    <span class="text-sm font-bold text-slate-700">Exportar CSV</span>
+                    <span class="text-sm font-bold text-slate-700">Dados de Pacientes (JSON)</span>
                 </div>
                 <span class="material-symbols-outlined text-slate-300 group-hover:text-primary">chevron_right</span>
-            </button>
-        </div>
-        <div class="mt-6 pt-4 border-t border-slate-100">
-            <p class="text-[10px] font-medium text-slate-400 italic">Última exportação: 12/06/2025 — Dr. Ricardo Santos.</p>
+            </a>
+            <a href="/api/v1/mapa/calor" target="_blank"
+               class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors rounded-lg group">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary">pin_drop</span>
+                    <span class="text-sm font-bold text-slate-700">Dados Geográficos (JSON)</span>
+                </div>
+                <span class="material-symbols-outlined text-slate-300 group-hover:text-primary">chevron_right</span>
+            </a>
         </div>
     </div>
 
-    <!-- Heat Map Focus -->
-    <div class="col-span-12 bg-white p-6 rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-black text-slate-900">Mapa de Calor: Concentração de Risco</h3>
-            <div class="flex gap-2">
-                <button class="px-3 py-1 bg-slate-50 text-[10px] font-bold rounded hover:bg-slate-100">ZONA OESTE</button>
-                <button class="px-3 py-1 bg-slate-50 text-[10px] font-bold rounded hover:bg-slate-100">ZONA SUL</button>
-                <button class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded">TODAS</button>
-            </div>
-        </div>
-        <div class="w-full h-72 bg-slate-100 rounded-lg relative overflow-hidden">
-            <div class="absolute inset-0 bg-primary/5"></div>
-            <div class="absolute top-1/4 left-1/3 w-24 h-24 bg-red-500/30 rounded-full blur-2xl border-2 border-red-500/40"></div>
-            <div class="absolute bottom-1/3 right-1/4 w-32 h-32 bg-primary/20 rounded-full blur-2xl border-2 border-primary/30"></div>
-            <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur p-3 rounded shadow-lg">
-                <p class="text-[10px] font-black uppercase mb-2">Legenda</p>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-red-500 rounded-full"></span><span class="text-[9px] font-bold">Crítico</span></div>
-                    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-amber-500 rounded-full"></span><span class="text-[9px] font-bold">Alerta</span></div>
-                    <div class="flex items-center gap-1"><span class="w-2 h-2 bg-primary rounded-full"></span><span class="text-[9px] font-bold">Estável</span></div>
+    <!-- Insights -->
+    <div class="col-span-12 lg:col-span-8">
+        <div class="bg-primary text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="material-symbols-outlined text-white/80">auto_awesome</span>
+                    <h3 class="text-sm font-black uppercase tracking-widest">Resumo do Sistema</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
+                        <p class="text-2xl font-black">{{ kpis.total_pacientes|default(0) }}</p>
+                        <p class="text-xs text-white/70">idosos com obesidade grau II+ monitorados</p>
+                    </div>
+                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
+                        <p class="text-2xl font-black">{{ territorios|length }}</p>
+                        <p class="text-xs text-white/70">bairros de Vitória da Conquista cobertos</p>
+                    </div>
+                    <div class="p-4 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
+                        <p class="text-2xl font-black">{{ risco_dist|sum(attribute='Quantidade') if risco_dist else 0 }}</p>
+                        <p class="text-xs text-white/70">pacientes com score de risco calculado (ML)</p>
+                    </div>
                 </div>
             </div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+    const container = document.getElementById("relatorio-heatmap");
+    if (!container || typeof L === "undefined") return;
+
+    const map = L.map("relatorio-heatmap", { zoomControl: false, attributionControl: false }).setView([-14.866, -40.844], 13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18 }).addTo(map);
+
+    try {
+        const res = await fetch("/api/v1/mapa/calor");
+        if (!res.ok) return;
+        const pontos = await res.json();
+        if (!pontos.length) return;
+
+        const maxInt = Math.max(...pontos.map(p => p.intensidade), 1);
+        const heatData = pontos.map(p => [p.lat, p.lon, p.intensidade / maxInt]);
+
+        L.heatLayer(heatData, {
+            radius: 20, blur: 15, maxZoom: 16, max: 1.0,
+            gradient: { 0.0: "#22c55e", 0.3: "#eab308", 0.6: "#f97316", 0.8: "#ef4444", 1.0: "#7f1d1d" },
+        }).addTo(map);
+
+        if (heatData.length > 1) map.fitBounds(L.latLngBounds(heatData.map(d => [d[0], d[1]])), { padding: [20, 20] });
+    } catch (e) { console.error("Erro mini-mapa:", e); }
+});
+</script>
 {% endblock %}
