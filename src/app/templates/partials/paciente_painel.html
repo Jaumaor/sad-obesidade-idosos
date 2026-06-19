@@ -1,0 +1,139 @@
+{% set risco = p.nivel_risco or 'Sem cálculo' %}
+{% set border_color = 'border-l-red-500' if risco == 'Critico' else 'border-l-amber-500' if risco == 'Alto' else 'border-l-blue-500' if risco == 'Moderado' else 'border-l-slate-300' %}
+
+<div class="bg-white rounded-xl shadow-sm {{ border_color }} border-l-4 overflow-hidden border border-slate-200 sticky top-24">
+    <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+        <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-lg bg-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-2xl">person</span>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 leading-tight">{{ p.codigo_anonimo }}</h3>
+                    <p class="text-sm font-medium text-slate-500">{{ p.idade }} anos • {{ p.sexo }} • {{ p.territorio or 'Sem bairro' }}</p>
+                </div>
+            </div>
+        </div>
+        {% if risco == 'Critico' %}
+        <div class="flex items-center gap-3 bg-red-50 p-3 rounded-lg border border-red-100">
+            <span class="material-symbols-outlined text-red-500" style="font-variation-settings: 'FILL' 1;">warning</span>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-wider text-red-700">Score ML Crítico</p>
+                <p class="text-lg font-black text-red-600">{{ p.score_risco|default(0)|int }} / 100</p>
+            </div>
+        </div>
+        {% elif risco == 'Alto' %}
+        <div class="flex items-center gap-3 bg-amber-50 p-3 rounded-lg border border-amber-100">
+            <span class="material-symbols-outlined text-amber-600" style="font-variation-settings: 'FILL' 1;">report</span>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-wider text-amber-700">Score ML Alto</p>
+                <p class="text-lg font-black text-amber-600">{{ p.score_risco|default(0)|int }} / 100</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <span class="material-symbols-outlined text-slate-400">info</span>
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-500">Score ML</p>
+                <p class="text-lg font-black text-slate-700">{{ p.score_risco|default(0)|int }} / 100</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="p-6 space-y-5">
+        <!-- Dados Clínicos -->
+        <div>
+            <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">vital_signs</span>
+                Dados Clínicos Atuais
+            </h4>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">IMC</p>
+                    <p class="text-lg font-black text-slate-800">{{ "%.1f"|format(p.imc_atual|float) }}</p>
+                    <p class="text-[10px] text-slate-500">{{ p.grau_obesidade_atual or '' }}</p>
+                </div>
+                <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Peso / Altura</p>
+                    <p class="text-lg font-black text-slate-800">{{ p.peso_kg|default('--') }}</p>
+                    <p class="text-[10px] text-slate-500">{{ "%.2f"|format(p.altura_m|float) if p.altura_m else '--' }}m</p>
+                </div>
+                {% if p.pa_sistolica %}
+                <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">PA</p>
+                    <p class="text-lg font-black {% if p.pa_sistolica|int >= 140 %}text-red-600{% else %}text-slate-800{% endif %}">
+                        {{ p.pa_sistolica }}/{{ p.pa_diastolica }}
+                    </p>
+                    <p class="text-[10px] text-slate-500">mmHg</p>
+                </div>
+                {% endif %}
+                {% if p.glicemia %}
+                <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Glicemia</p>
+                    <p class="text-lg font-black {% if p.glicemia|int >= 126 %}text-red-600{% else %}text-slate-800{% endif %}">
+                        {{ p.glicemia }}
+                    </p>
+                    <p class="text-[10px] text-slate-500">mg/dL</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Comorbidades -->
+        <div>
+            <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">medical_services</span>
+                Comorbidades ({{ p.total_comorbidades|default(0) }})
+            </h4>
+            <div class="space-y-2">
+                {% set comorbs = [] %}
+                {% if p.tem_diabetes %}{% set _ = comorbs.append('Diabetes') %}{% endif %}
+                {% if p.tem_hipertensao %}{% set _ = comorbs.append('Hipertensão') %}{% endif %}
+                {% if p.tem_doenca_cardiaca %}{% set _ = comorbs.append('Cardiopatia') %}{% endif %}
+                {% if p.tem_dislipidemia %}{% set _ = comorbs.append('Dislipidemia') %}{% endif %}
+                {% if p.tem_irc %}{% set _ = comorbs.append('IRC') %}{% endif %}
+                {% if p.tem_depressao %}{% set _ = comorbs.append('Depressão') %}{% endif %}
+                {% if p.tem_artrose %}{% set _ = comorbs.append('Artrose') %}{% endif %}
+                {% for c in comorbs %}
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded border border-slate-100">
+                    <span class="text-sm font-bold text-slate-900">{{ c }}</span>
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Ativa</span>
+                </div>
+                {% endfor %}
+                {% if not comorbs %}
+                <p class="text-sm text-slate-400 italic">Nenhuma comorbidade registrada</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Acompanhamento -->
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Última visita</p>
+                    <p class="text-sm font-bold text-slate-800">{{ p.data_ultima_visita or 'Sem registro' }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Dias sem visita</p>
+                    <p class="text-sm font-black {% if p.dias_sem_visita and p.dias_sem_visita|int > 365 %}text-red-600{% else %}text-slate-800{% endif %}">
+                        {{ p.dias_sem_visita|default(0) }} dias
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="grid grid-cols-2 gap-3">
+            <a href="/pacientes/{{ p.id }}" class="bg-primary text-white py-3 px-4 rounded font-black text-xs tracking-widest uppercase hover:opacity-90 text-center">
+                Prontuário
+            </a>
+            <button class="border-2 border-slate-200 text-slate-900 py-3 px-4 rounded font-black text-xs tracking-widest uppercase hover:bg-slate-50"
+                    hx-post="/api/v1/risco/calcular/{{ p.id }}"
+                    hx-swap="none"
+                    onclick="alert('Risco recalculado!')">
+                Recalcular
+            </button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+{% for p in pacientes %}
+<tr class="hover:bg-slate-50 transition-colors cursor-pointer"
+    hx-get="/pacientes/{{ p.id }}/painel"
+    hx-target="#painel-paciente"
+    hx-swap="innerHTML">
+    <td class="px-6 py-4">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full 
+                {% if p.nivel_risco == 'Critico' %}bg-red-100 text-red-600
+                {% elif p.nivel_risco == 'Alto' %}bg-amber-100 text-amber-700
+                {% else %}bg-slate-200 text-slate-500{% endif %}
+                flex items-center justify-center font-bold text-[10px]">
+                {{ (p.sexo|default('?'))[0] }}{{ p.idade|default('') }}
+            </div>
+            <div>
+                <span class="text-sm font-bold text-slate-900">{{ p.codigo_anonimo }}</span>
+                {% if p.territorio %}
+                <p class="text-[10px] text-slate-400 font-medium">{{ p.territorio }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </td>
+    <td class="px-6 py-4 text-sm text-slate-600">{{ p.idade }} anos</td>
+    <td class="px-6 py-4 text-center">
+        <span class="text-sm font-bold text-slate-900">{{ "%.1f"|format(p.imc_atual|float) }}</span>
+        <span class="text-[10px] text-slate-400 block">{{ p.grau_obesidade or '' }}</span>
+    </td>
+    <td class="px-6 py-4">
+        {% set risco = p.nivel_risco or 'Sem cálculo' %}
+        {% if risco == 'Critico' %}
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-red-50 text-red-600 border border-red-200 inline-flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+            {{ p.score_risco|default(0)|int }} Crítico
+        </span>
+        {% elif risco == 'Alto' %}
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+            {{ p.score_risco|default(0)|int }} Alto
+        </span>
+        {% elif risco == 'Moderado' %}
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+            {{ p.score_risco|default(0)|int }} Moderado
+        </span>
+        {% else %}
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-50 text-slate-500 border border-slate-200 inline-flex items-center gap-1">
+            {{ p.score_risco|default(0)|int }} {{ risco }}
+        </span>
+        {% endif %}
+    </td>
+    <td class="px-6 py-4 text-sm text-center 
+        {% if p.dias_sem_visita and p.dias_sem_visita|int > 365 %}text-red-600 font-bold{% else %}text-slate-600{% endif %}">
+        {{ p.dias_sem_visita|default(0) }}d
+    </td>
+    <td class="px-6 py-4 text-sm text-center text-slate-600">{{ p.total_comorbidades|default(0) }}</td>
+    <td class="px-6 py-4 text-right">
+        <a href="/pacientes/{{ p.id }}"
+           class="text-primary text-xs font-black uppercase tracking-widest hover:underline">
+            Prontuário
+        </a>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="7" class="px-6 py-12 text-center text-slate-400 text-sm">
+        <span class="material-symbols-outlined text-3xl block mb-2">search_off</span>
+        Nenhum paciente encontrado com os filtros selecionados.
+    </td>
+</tr>
+{% endfor %}

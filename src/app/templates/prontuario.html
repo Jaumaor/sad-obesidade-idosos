@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Prontuário {{ p.codigo_anonimo }} | SAD{% endblock %}
+{% block page_icon %}assignment_ind{% endblock %}
+{% block page_title %}Prontuário Individual{% endblock %}
+
+{% block content %}
+{% if not p %}
+<div class="text-center py-20">
+    <span class="material-symbols-outlined text-6xl text-slate-300">person_off</span>
+    <p class="text-lg font-bold text-slate-400 mt-4">Paciente não encontrado</p>
+    <a href="/pacientes" class="text-primary font-bold text-sm mt-2 inline-block hover:underline">← Voltar para lista</a>
+</div>
+{% else %}
+{% set risco = p.nivel_risco or 'Sem cálculo' %}
+
+<!-- Breadcrumb + voltar -->
+<div class="flex items-center gap-2 mb-2">
+    <a href="/pacientes" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">arrow_back</span> Pacientes
+    </a>
+    <span class="text-slate-300">/</span>
+    <span class="text-xs font-bold text-slate-500">{{ p.codigo_anonimo }}</span>
+</div>
+
+<!-- Header do paciente -->
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-16 h-16 rounded-xl bg-primary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary text-3xl">person</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-slate-900">{{ p.codigo_anonimo }}</h2>
+                <p class="text-sm text-slate-500 font-medium">{{ p.idade }} anos • {{ p.sexo }} • {{ p.territorio or 'Sem território' }}</p>
+                <div class="flex items-center gap-2 mt-1">
+                    {% if p.em_acompanhamento %}
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded">Em acompanhamento</span>
+                    {% else %}
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-red-100 text-red-700 rounded">Sem acompanhamento</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Score badge -->
+        <div class="text-center p-4 rounded-xl
+            {% if risco == 'Critico' %}bg-red-50 border border-red-200
+            {% elif risco == 'Alto' %}bg-amber-50 border border-amber-200
+            {% elif risco == 'Moderado' %}bg-blue-50 border border-blue-200
+            {% else %}bg-slate-50 border border-slate-200{% endif %}">
+            <p class="text-[10px] font-black uppercase tracking-wider
+                {% if risco == 'Critico' %}text-red-700
+                {% elif risco == 'Alto' %}text-amber-700
+                {% else %}text-slate-600{% endif %}">Score ML</p>
+            <p class="text-3xl font-black
+                {% if risco == 'Critico' %}text-red-600
+                {% elif risco == 'Alto' %}text-amber-600
+                {% else %}text-slate-800{% endif %}">{{ p.score_risco|default(0)|int }}</p>
+            <p class="text-xs font-bold
+                {% if risco == 'Critico' %}text-red-500
+                {% elif risco == 'Alto' %}text-amber-500
+                {% else %}text-slate-500{% endif %}">{{ risco }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Grid de informações -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Coluna esquerda: dados clínicos -->
+    <div class="col-span-12 lg:col-span-8 space-y-6">
+
+        <!-- Dados Antropométricos -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">monitor_weight</span>
+                Dados Antropométricos e Clínicos
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">IMC</p>
+                    <p class="text-2xl font-black text-slate-800">{{ "%.1f"|format(p.imc_atual|float) if p.imc_atual else '--' }}</p>
+                    <p class="text-xs text-slate-500">{{ p.grau_obesidade_atual or '' }}</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Peso</p>
+                    <p class="text-2xl font-black text-slate-800">{{ p.peso_kg|default('--') }}</p>
+                    <p class="text-xs text-slate-500">kg</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Altura</p>
+                    <p class="text-2xl font-black text-slate-800">{{ "%.2f"|format(p.altura_m|float) if p.altura_m else '--' }}</p>
+                    <p class="text-xs text-slate-500">m</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">PA</p>
+                    <p class="text-2xl font-black {% if p.pa_sistolica and p.pa_sistolica|int >= 140 %}text-red-600{% else %}text-slate-800{% endif %}">
+                        {{ p.pa_sistolica|default('--') }}/{{ p.pa_diastolica|default('--') }}
+                    </p>
+                    <p class="text-xs text-slate-500">mmHg</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico de Acompanhamentos -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">show_chart</span>
+                Histórico de Medições ({{ acompanhamentos|length }})
+            </h3>
+            {% if acompanhamentos %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-100">
+                            <th class="pb-3 text-[10px] font-black uppercase text-slate-400">Data</th>
+                            <th class="pb-3 text-[10px] font-black uppercase text-slate-400 text-center">Peso</th>
+                            <th class="pb-3 text-[10px] font-black uppercase text-slate-400 text-center">IMC</th>
+                            <th class="pb-3 text-[10px] font-black uppercase text-slate-400 text-center">Δ IMC</th>
+                            <th class="pb-3 text-[10px] font-black uppercase text-slate-400 text-center">PA</th>
+                            <th class="pb-3 text-[10px] font-black uppercase text-slate-400 text-center">Glicemia</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for a in acompanhamentos %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="py-3 font-medium text-slate-700">{{ a.data_registro or '--' }}</td>
+                            <td class="py-3 text-center text-slate-600">{{ "%.1f"|format(a.peso_kg|float) if a.peso_kg else '--' }}</td>
+                            <td class="py-3 text-center font-bold text-slate-800">{{ "%.1f"|format(a.imc|float) if a.imc else '--' }}</td>
+                            <td class="py-3 text-center">
+                                {% if a.variacao_imc %}
+                                    {% if a.variacao_imc|float > 0 %}
+                                    <span class="text-red-600 font-bold">+{{ "%.1f"|format(a.variacao_imc|float) }}</span>
+                                    {% elif a.variacao_imc|float < 0 %}
+                                    <span class="text-emerald-600 font-bold">{{ "%.1f"|format(a.variacao_imc|float) }}</span>
+                                    {% else %}
+                                    <span class="text-slate-400">0.0</span>
+                                    {% endif %}
+                                {% else %}
+                                <span class="text-slate-300">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 text-center text-slate-600">
+                                {% if a.pressao_arterial_sistolica %}
+                                {{ a.pressao_arterial_sistolica|int }}/{{ a.pressao_arterial_diastolica|int }}
+                                {% else %}--{% endif %}
+                            </td>
+                            <td class="py-3 text-center text-slate-600">{{ a.glicemia_mg_dl|default('--') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-sm text-slate-400 italic text-center py-8">Nenhuma medição registrada no e-SUS.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Coluna direita -->
+    <div class="col-span-12 lg:col-span-4 space-y-6">
+
+        <!-- Comorbidades (CID-10) -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">medical_services</span>
+                Comorbidades
+            </h3>
+            {% set flags = [] %}
+            {% if p.tem_diabetes %}{% set _ = flags.append('Diabetes') %}{% endif %}
+            {% if p.tem_hipertensao %}{% set _ = flags.append('Hipertensão') %}{% endif %}
+            {% if p.tem_doenca_cardiaca %}{% set _ = flags.append('Cardiopatia') %}{% endif %}
+            {% if p.tem_dislipidemia %}{% set _ = flags.append('Dislipidemia') %}{% endif %}
+            {% if p.tem_irc %}{% set _ = flags.append('IRC') %}{% endif %}
+            {% if p.tem_depressao %}{% set _ = flags.append('Depressão') %}{% endif %}
+            {% if p.tem_artrose %}{% set _ = flags.append('Artrose') %}{% endif %}
+
+            {% if flags %}
+            <div class="space-y-2 mb-4">
+                {% for f in flags %}
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <span class="text-sm font-bold text-slate-800">{{ f }}</span>
+                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-100 text-amber-700 rounded">Ativa</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if comorbidades %}
+            <p class="text-[10px] font-black uppercase text-slate-400 mb-2">CID-10 registrados</p>
+            <div class="space-y-1">
+                {% for c in comorbidades %}
+                <div class="flex items-center justify-between p-2 bg-slate-50 rounded border border-slate-100">
+                    <span class="text-xs font-medium text-slate-700">{{ c.condicao }}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">{{ c.descricao_adicional or '' }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% elif not flags %}
+            <p class="text-sm text-slate-400 italic">Nenhuma comorbidade registrada.</p>
+            {% endif %}
+        </div>
+
+        <!-- Acompanhamento e visitas -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">calendar_month</span>
+                Acompanhamento
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Última visita</span>
+                    <span class="text-sm font-black text-slate-800">{{ p.data_ultima_visita or 'Sem registro' }}</span>
+                </div>
+                <div class="flex items-center justify-between p-3 rounded-lg border
+                    {% if p.dias_sem_visita and p.dias_sem_visita|int > 365 %}bg-red-50 border-red-100
+                    {% elif p.dias_sem_visita and p.dias_sem_visita|int > 90 %}bg-amber-50 border-amber-100
+                    {% else %}bg-slate-50 border-slate-100{% endif %}">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Dias sem visita</span>
+                    <span class="text-sm font-black
+                        {% if p.dias_sem_visita and p.dias_sem_visita|int > 365 %}text-red-600
+                        {% elif p.dias_sem_visita and p.dias_sem_visita|int > 90 %}text-amber-600
+                        {% else %}text-slate-800{% endif %}">
+                        {{ p.dias_sem_visita|default(0) }}
+                    </span>
+                </div>
+                {% if p.dias_desde_calculo_risco is not none %}
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Risco calculado há</span>
+                    <span class="text-sm font-black text-slate-800">{{ p.dias_desde_calculo_risco }} dias</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Fatores de risco ML -->
+        {% if p.fatores_risco %}
+        <div class="bg-yellow-50 rounded-xl border border-yellow-200 p-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-yellow-800 mb-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">psychology</span>
+                Fatores de Risco (ML)
+            </h3>
+            <div class="space-y-2">
+                {% for fator in p.fatores_risco %}
+                <div class="flex items-center gap-2 text-sm text-yellow-900">
+                    <span class="material-symbols-outlined text-yellow-600 text-sm">warning</span>
+                    {{ fator }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ações -->
+        <div class="flex gap-3">
+            <a href="/pacientes" class="flex-1 border-2 border-slate-200 text-slate-900 py-3 px-4 rounded-lg font-black text-xs tracking-widest uppercase hover:bg-slate-50 text-center">
+                ← Voltar
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
